@@ -1,6 +1,6 @@
 # Polaris SDKs
 
-Official Python and TypeScript SDKs for [The Polaris Report](https://thepolarisreport.com) API.
+Official SDKs and framework integrations for [The Polaris Report](https://thepolarisreport.com) API.
 
 ## SDKs
 
@@ -8,6 +8,9 @@ Official Python and TypeScript SDKs for [The Polaris Report](https://thepolarisr
 |----------|---------|---------|
 | Python | [`polaris-news`](./python/) | `pip install polaris-news` |
 | TypeScript | [`polaris-news-api`](./typescript/) | `npm install polaris-news-api` |
+| Vercel AI SDK | [`@polaris-news/ai`](./ai/) | `npm install @polaris-news/ai` |
+| CrewAI | [`crewai-polaris`](./crewai-polaris/) | `pip install crewai-polaris` |
+| LangChain | [`langchain-polaris`](./python/langchain_polaris/) | `pip install langchain-polaris` |
 | Cursor | [`polaris-news`](./cursor-plugin/) | [Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=Polaris&config=eyJ1cmwiOiJodHRwczovL2FwaS50aGVwb2xhcmlzcmVwb3J0LmNvbS9hcGkvdjEvbWNwP2tleT1ZT1VSX0FQSV9LRVkifQ==) |
 
 ## Quick Start
