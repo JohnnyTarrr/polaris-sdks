@@ -6,6 +6,7 @@ from .tools import (
     PolarisFeedTool,
     PolarisResearchTool,
     PolarisSearchTool,
+    PolarisTrendingTool,
 )
 from .retrievers import PolarisRetriever
 
@@ -17,5 +18,6 @@ __all__ = [
     "PolarisExtractTool",
     "PolarisResearchTool",
     "PolarisCompareTool",
+    "PolarisTrendingTool",
     "PolarisRetriever",
 ]

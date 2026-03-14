@@ -231,3 +231,28 @@ class PolarisCompareTool(BaseTool):
             summary = comparison.polaris_analysis.get("summary", "") if isinstance(comparison.polaris_analysis, dict) else str(comparison.polaris_analysis)
             lines.append("Synthesis: {}".format(summary[:500]))
         return "\n".join(lines)
+
+
+class TrendingInput(BaseModel):
+    limit: Optional[int] = Field(default=None, description="Max number of trending entities to return")
+
+
+class PolarisTrendingTool(BaseTool):
+    name: str = "polaris_trending"
+    description: str = "Get trending entities across the news — the people, companies, and topics generating the most coverage right now."
+    args_schema: Type[BaseModel] = TrendingInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, limit: int = None) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        entities = client.trending_entities(limit=limit)
+        if not entities:
+            return "No trending entities found."
+        lines = ["Trending entities:"]
+        for e in entities:
+            lines.append("- {} ({}, {} mentions)".format(
+                e.name, e.type or "N/A", e.mention_count or 0))
+        return "\n".join(lines)
