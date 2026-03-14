@@ -1,0 +1,21 @@
+{
+  "name": "polaris-news",
+  "description": "Verified, bias-scored intelligence briefs — search, feed, extract, entities, trending, compare, and deep research across the Polaris brief network.",
+  "version": "1.0.0",
+  "author": {
+    "name": "The Polaris Report",
+    "email": "team@thepolarisreport.com"
+  },
+  "homepage": "https://thepolarisreport.com",
+  "repository": "https://github.com/JohnnyTarrr/polaris-sdks",
+  "license": "MIT",
+  "keywords": ["news", "intelligence", "research", "mcp", "briefs", "entities"],
+  "mcpServers": {
+    "polaris": {
+      "url": "https://api.thepolarisreport.com/api/v1/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:POLARIS_API_KEY}"
+      }
+    }
+  }
+}
