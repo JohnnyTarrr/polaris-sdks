@@ -1,3 +1,6 @@
+import { readFileSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
 import {
   APIError,
   AuthenticationError,
@@ -5,6 +8,17 @@ import {
   PolarisError,
   RateLimitError,
 } from "./errors.js";
+
+function readCredentials(): string | undefined {
+  const envKey = process.env.POLARIS_API_KEY;
+  if (envKey) return envKey;
+  try {
+    const key = readFileSync(join(homedir(), ".polaris", "credentials"), "utf-8").trim();
+    return key || undefined;
+  } catch {
+    return undefined;
+  }
+}
 import type {
   AgentFeedOptions,
   Brief,
@@ -143,7 +157,7 @@ export class PolarisClient {
   private baseUrl: string;
 
   constructor(options: PolarisClientOptions = {}) {
-    this.apiKey = options.apiKey;
+    this.apiKey = options.apiKey ?? readCredentials();
     this.baseUrl = (options.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
   }
 

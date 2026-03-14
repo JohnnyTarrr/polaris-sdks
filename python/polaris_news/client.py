@@ -1,8 +1,22 @@
 import json
+import os
 
 import requests
 
 from .exceptions import APIError, AuthenticationError, NotFoundError, PolarisError, RateLimitError
+
+
+def _read_credentials():
+    """Read API key from POLARIS_API_KEY env var or ~/.polaris/credentials."""
+    key = os.environ.get("POLARIS_API_KEY")
+    if key:
+        return key
+    try:
+        with open(os.path.expanduser("~/.polaris/credentials"), "r") as f:
+            key = f.read().strip()
+            return key if key else None
+    except (OSError, IOError):
+        return None
 from .types import (
     Brief,
     ClustersResponse,
@@ -30,7 +44,7 @@ class PolarisClient:
     DEFAULT_BASE_URL = "https://api.thepolarisreport.com"
 
     def __init__(self, api_key=None, base_url=None):
-        self.api_key = api_key
+        self.api_key = api_key or _read_credentials()
         self.base_url = (base_url or self.DEFAULT_BASE_URL).rstrip("/")
         self._session = requests.Session()
         if self.api_key:

@@ -1,7 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PolarisClient = void 0;
+const fs_1 = require("fs");
+const os_1 = require("os");
+const path_1 = require("path");
 const errors_js_1 = require("./errors.js");
+function readCredentials() {
+    const envKey = process.env.POLARIS_API_KEY;
+    if (envKey)
+        return envKey;
+    try {
+        const key = (0, fs_1.readFileSync)((0, path_1.join)((0, os_1.homedir)(), ".polaris", "credentials"), "utf-8").trim();
+        return key || undefined;
+    }
+    catch {
+        return undefined;
+    }
+}
 const DEFAULT_BASE_URL = "https://api.thepolarisreport.com";
 function toSnakeCase(str) {
     return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
@@ -96,7 +111,7 @@ function parseSourceAnalysis(raw) {
 }
 class PolarisClient {
     constructor(options = {}) {
-        this.apiKey = options.apiKey;
+        this.apiKey = options.apiKey ?? readCredentials();
         this.baseUrl = (options.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
     }
     async request(method, path, params, body) {

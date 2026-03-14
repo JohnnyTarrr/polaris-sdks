@@ -1,4 +1,19 @@
+import { readFileSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
 import { APIError, AuthenticationError, NotFoundError, RateLimitError, } from "./errors.js";
+function readCredentials() {
+    const envKey = process.env.POLARIS_API_KEY;
+    if (envKey)
+        return envKey;
+    try {
+        const key = readFileSync(join(homedir(), ".polaris", "credentials"), "utf-8").trim();
+        return key || undefined;
+    }
+    catch {
+        return undefined;
+    }
+}
 const DEFAULT_BASE_URL = "https://api.thepolarisreport.com";
 function toSnakeCase(str) {
     return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
@@ -93,7 +108,7 @@ function parseSourceAnalysis(raw) {
 }
 export class PolarisClient {
     constructor(options = {}) {
-        this.apiKey = options.apiKey;
+        this.apiKey = options.apiKey ?? readCredentials();
         this.baseUrl = (options.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
     }
     async request(method, path, params, body) {
