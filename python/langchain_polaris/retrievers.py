@@ -2,7 +2,6 @@ from typing import List, Optional
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
-from pydantic import Field
 
 from polaris_news import PolarisClient
 
@@ -10,23 +9,25 @@ from polaris_news import PolarisClient
 class PolarisRetriever(BaseRetriever):
     """LangChain retriever that searches Polaris verified news intelligence."""
 
-    api_key: str = Field(description="Polaris API key")
-    category: Optional[str] = Field(default=None, description="Category filter")
-    min_confidence: Optional[float] = Field(default=None, description="Minimum confidence score")
-    limit: int = Field(default=10, description="Max results to return")
-    include_sources: Optional[str] = Field(default=None, description="Comma-separated source domains to include")
-    exclude_sources: Optional[str] = Field(default=None, description="Comma-separated source domains to exclude")
+    api_key: str = ""
+    category: Optional[str] = None
+    min_confidence: Optional[float] = None
+    limit: int = 10
+    include_sources: Optional[str] = None
+    exclude_sources: Optional[str] = None
 
     def _get_relevant_documents(self, query: str, **kwargs) -> List[Document]:
         client = PolarisClient(api_key=self.api_key)
-        result = client.search(
-            query,
-            category=self.category,
-            min_confidence=self.min_confidence,
-            per_page=self.limit,
-            include_sources=self.include_sources,
-            exclude_sources=self.exclude_sources,
-        )
+        search_kwargs = {}
+        if self.category is not None:
+            search_kwargs["category"] = self.category
+        if self.min_confidence is not None:
+            search_kwargs["min_confidence"] = self.min_confidence
+        if self.include_sources is not None:
+            search_kwargs["include_sources"] = self.include_sources
+        if self.exclude_sources is not None:
+            search_kwargs["exclude_sources"] = self.exclude_sources
+        result = client.search(query, per_page=self.limit, **search_kwargs)
         docs = []
         for b in result.briefs:
             content_parts = []
