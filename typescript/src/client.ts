@@ -48,6 +48,8 @@ import type {
   SourceAnalysis,
   StreamOptions,
   TrendingOptions,
+  VerifyOptions,
+  VerifyResponse,
 } from "./types.js";
 
 const DEFAULT_BASE_URL = "https://api.thepolarisreport.com";
@@ -393,6 +395,33 @@ export class PolarisClient {
         error: r.error as string | undefined,
       })),
       creditsUsed: (data.credits_used || 0) as number,
+    };
+  }
+
+  async verify(claim: string, options: VerifyOptions = {}): Promise<VerifyResponse> {
+    const body: Record<string, unknown> = { claim };
+    if (options.context !== undefined) body.context = options.context;
+    const data = await this.request<Record<string, unknown>>("POST", "/api/v1/verify", undefined, body);
+    const mapBrief = (b: Record<string, unknown>) => ({
+      id: b.id as string,
+      headline: b.headline as string,
+      confidence: b.confidence as number,
+      relevance: (b.relevance ?? null) as number | null,
+    });
+    return {
+      claim: data.claim as string,
+      verdict: data.verdict as VerifyResponse["verdict"],
+      confidence: (data.confidence || 0) as number,
+      summary: (data.summary || "") as string,
+      supportingBriefs: ((data.supporting_briefs || []) as Record<string, unknown>[]).map(mapBrief),
+      contradictingBriefs: ((data.contradicting_briefs || []) as Record<string, unknown>[]).map(mapBrief),
+      nuances: (data.nuances ?? null) as string | null,
+      sourcesAnalyzed: (data.sources_analyzed || 0) as number,
+      briefsMatched: (data.briefs_matched || 0) as number,
+      creditsUsed: (data.credits_used || 0) as number,
+      cached: (data.cached || false) as boolean,
+      processingTimeMs: (data.processing_time_ms || 0) as number,
+      modelUsed: (data.model_used ?? null) as string | null,
     };
   }
 

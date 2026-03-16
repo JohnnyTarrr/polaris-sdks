@@ -198,6 +198,41 @@ class PolarisResearchTool(BaseTool):
         return "\n".join(lines)
 
 
+class VerifyInput(BaseModel):
+    claim: str = Field(description="The claim to fact-check (10-1000 characters)")
+    context: Optional[str] = Field(default=None, description="Category to narrow the search (e.g. tech, policy, markets)")
+
+
+class PolarisVerifyTool(BaseTool):
+    name: str = "polaris_verify"
+    description: str = "Fact-check a claim against the Polaris brief corpus. Returns a verdict (supported/contradicted/partially_supported/unverifiable) with confidence, evidence, and nuances. Costs 3 API credits."
+    args_schema: Type[BaseModel] = VerifyInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, claim: str, context: str = None) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.verify(claim, context=context)
+        lines = ["Verdict: {} (confidence: {:.0%})".format(result.verdict, result.confidence)]
+        if result.summary:
+            lines.append("Summary: {}".format(result.summary))
+        if result.supporting_briefs:
+            lines.append("Supporting Evidence:")
+            for b in result.supporting_briefs:
+                lines.append("- {} ({})".format(b.headline, b.id))
+        if result.contradicting_briefs:
+            lines.append("Contradicting Evidence:")
+            for b in result.contradicting_briefs:
+                lines.append("- {} ({})".format(b.headline, b.id))
+        if result.nuances:
+            lines.append("Nuances: {}".format(result.nuances))
+        lines.append("Sources analyzed: {} | Briefs matched: {} | Credits: {}".format(
+            result.sources_analyzed, result.briefs_matched, result.credits_used))
+        return "\n".join(lines)
+
+
 class CompareInput(BaseModel):
     topic: str = Field(description="Topic to compare coverage across outlets")
 

@@ -21,6 +21,8 @@ from .types import (
     ResearchResponse,
     ResearchSourceUsed,
     SearchResponse,
+    VerifyBrief,
+    VerifyResponse,
     Source,
     SourceAnalysis,
     SourceVerification,
@@ -62,4 +64,6 @@ __all__ = [
     "DepthMetadata",
     "EntityCrossRef",
     "SourceVerification",
+    "VerifyBrief",
+    "VerifyResponse",
 ]

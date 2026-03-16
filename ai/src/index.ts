@@ -6,3 +6,4 @@ export { polarisEntities } from "./tools/polaris-entities.js";
 export { polarisTrending } from "./tools/polaris-trending.js";
 export { polarisCompare } from "./tools/polaris-compare.js";
 export { polarisResearch } from "./tools/polaris-research.js";
+export { polarisVerify } from "./tools/polaris-verify.js";

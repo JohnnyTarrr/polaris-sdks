@@ -45,6 +45,7 @@ result = crew.kickoff()
 | `PolarisTrendingTool` | Get trending entities |
 | `PolarisCompareTool` | Compare outlet coverage of a story |
 | `PolarisResearchTool` | Deep multi-source research (5 credits) |
+| `PolarisVerifyTool` | Fact-check a claim against briefs (3 credits) |
 
 All tools accept `api_key` in the constructor. If omitted, the SDK reads from `POLARIS_API_KEY` or `~/.polaris/credentials`.
 

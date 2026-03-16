@@ -38,4 +38,7 @@ export type {
   TrendingOptions,
   StreamOptions,
   PolarisClientOptions,
+  VerifyOptions,
+  VerifyResponse,
+  VerifyBrief,
 } from "./types.js";

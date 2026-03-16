@@ -77,6 +77,7 @@ print(chain.invoke("What are the latest developments in AI?"))
 | `PolarisEntityTool` | Look up entities (companies, people, technologies) mentioned in verified news coverage. |
 | `PolarisBriefTool` | Get a specific verified news brief by ID with full analysis, sources, and counter-arguments. |
 | `PolarisExtractTool` | Extract clean article content from URLs. Returns structured text with metadata. |
+| `PolarisVerifyTool` | Fact-check a claim against the brief corpus. Returns verdict, confidence, evidence, and nuances. Costs 3 API credits. |
 | `PolarisCompareTool` | Compare how different news outlets covered the same story. Shows framing, bias, and what each side emphasizes or omits. |
 
 ## Retriever

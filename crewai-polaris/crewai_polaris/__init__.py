@@ -7,6 +7,7 @@ from .tools import (
     PolarisResearchTool,
     PolarisSearchTool,
     PolarisTrendingTool,
+    PolarisVerifyTool,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "PolarisResearchTool",
     "PolarisCompareTool",
     "PolarisTrendingTool",
+    "PolarisVerifyTool",
 ]

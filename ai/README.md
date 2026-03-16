@@ -50,6 +50,7 @@ const result = await generateText({
 | `polarisTrending()` | Get trending entities |
 | `polarisCompare()` | Compare outlet coverage of a story |
 | `polarisResearch()` | Deep multi-source research (5 credits) |
+| `polarisVerify()` | Fact-check a claim against briefs (3 credits) |
 
 Each function accepts an optional `{ apiKey }` config and returns an AI SDK `tool()`.
 

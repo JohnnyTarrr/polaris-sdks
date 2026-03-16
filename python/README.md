@@ -48,6 +48,7 @@ You can also pass a key explicitly or set the `POLARIS_API_KEY` environment vari
 | `agent_feed(category?, tags?, limit?, min_confidence?)` | Get agent-optimized feed |
 | `compare_sources(brief_id)` | Compare sources for a brief |
 | `trending(period?, limit?)` | Get trending briefs |
+| `verify(claim, context?)` | Fact-check a claim against briefs |
 | `stream(categories?)` | Stream briefs via SSE (generator) |
 
 ## Error Handling

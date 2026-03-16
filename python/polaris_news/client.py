@@ -34,6 +34,7 @@ from .types import (
     _parse_entity,
     _parse_extract_result,
     _parse_research_response,
+    _parse_verify_response,
     _parse_source_analysis,
 )
 
@@ -303,6 +304,14 @@ class PolarisClient:
             body["output_schema"] = output_schema
         data = self._request("POST", "/api/v1/research", json_body=body)
         return _parse_research_response(data)
+
+    def verify(self, claim, context=None):
+        """Fact-check a claim against the Polaris brief corpus. Costs 3 API credits."""
+        body = {"claim": claim}
+        if context is not None:
+            body["context"] = context
+        data = self._request("POST", "/api/v1/verify", json_body=body)
+        return _parse_verify_response(data)
 
     def trending(self, period=None, limit=None):
         """Get trending briefs."""

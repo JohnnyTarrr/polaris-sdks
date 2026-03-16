@@ -232,6 +232,59 @@ class ResearchResponse:
     structured_output_error: Optional[str] = None
 
 
+@dataclass
+class VerifyBrief:
+    id: str = ""
+    headline: str = ""
+    confidence: float = 0.0
+    relevance: Optional[float] = None
+
+
+@dataclass
+class VerifyResponse:
+    claim: str = ""
+    verdict: str = "unverifiable"
+    confidence: float = 0.0
+    summary: str = ""
+    supporting_briefs: Optional[List[VerifyBrief]] = None
+    contradicting_briefs: Optional[List[VerifyBrief]] = None
+    nuances: Optional[str] = None
+    sources_analyzed: int = 0
+    briefs_matched: int = 0
+    credits_used: int = 0
+    cached: bool = False
+    processing_time_ms: int = 0
+    model_used: Optional[str] = None
+
+
+def _parse_verify_brief(data):
+    if isinstance(data, dict):
+        return VerifyBrief(**{k: v for k, v in data.items() if k in VerifyBrief.__dataclass_fields__})
+    return VerifyBrief()
+
+
+def _parse_verify_response(data):
+    if not isinstance(data, dict):
+        return VerifyResponse()
+    supporting = data.get("supporting_briefs")
+    contradicting = data.get("contradicting_briefs")
+    return VerifyResponse(
+        claim=data.get("claim", ""),
+        verdict=data.get("verdict", "unverifiable"),
+        confidence=data.get("confidence", 0.0),
+        summary=data.get("summary", ""),
+        supporting_briefs=[_parse_verify_brief(b) for b in supporting] if isinstance(supporting, list) else None,
+        contradicting_briefs=[_parse_verify_brief(b) for b in contradicting] if isinstance(contradicting, list) else None,
+        nuances=data.get("nuances"),
+        sources_analyzed=data.get("sources_analyzed", 0),
+        briefs_matched=data.get("briefs_matched", 0),
+        credits_used=data.get("credits_used", 0),
+        cached=data.get("cached", False),
+        processing_time_ms=data.get("processing_time_ms", 0),
+        model_used=data.get("model_used"),
+    )
+
+
 def _parse_research_entity(data):
     if not isinstance(data, dict):
         return ResearchEntity()
