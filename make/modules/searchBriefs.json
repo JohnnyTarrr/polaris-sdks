@@ -1,0 +1,37 @@
+{
+  "name": "searchBriefs",
+  "label": "Search Briefs",
+  "description": "Search intelligence briefs by keyword.",
+  "type": "action",
+  "connection": "apiKey",
+  "url": "/api/v1/search",
+  "method": "GET",
+  "parameters": [
+    {
+      "name": "q",
+      "label": "Search Query",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "category",
+      "label": "Category",
+      "type": "text",
+      "required": false
+    },
+    {
+      "name": "limit",
+      "label": "Limit",
+      "type": "integer",
+      "required": false
+    }
+  ],
+  "response": {
+    "output": "{{body.results}}",
+    "fields": [
+      { "name": "id", "label": "Brief ID", "type": "text" },
+      { "name": "title", "label": "Title", "type": "text" },
+      { "name": "score", "label": "Relevance Score", "type": "number" }
+    ]
+  }
+}

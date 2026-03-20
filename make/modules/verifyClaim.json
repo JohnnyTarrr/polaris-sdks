@@ -1,0 +1,32 @@
+{
+  "name": "verifyClaim",
+  "label": "Verify Claim",
+  "description": "Verify a claim against the intelligence database.",
+  "type": "action",
+  "connection": "apiKey",
+  "url": "/api/v1/verify",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "claim": "{{parameters.claim}}"
+  },
+  "parameters": [
+    {
+      "name": "claim",
+      "label": "Claim",
+      "type": "text",
+      "required": true,
+      "help": "The claim to verify."
+    }
+  ],
+  "response": {
+    "output": "{{body}}",
+    "fields": [
+      { "name": "verdict", "label": "Verdict", "type": "text" },
+      { "name": "confidence", "label": "Confidence", "type": "number" },
+      { "name": "sources", "label": "Sources", "type": "collection" }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "polaris-zapier",
+  "version": "1.0.0",
+  "description": "Polaris Knowledge API for Zapier",
+  "main": "index.js",
+  "dependencies": {},
+  "zapier": {
+    "id": 0
+  }
+}

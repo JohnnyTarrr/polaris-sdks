@@ -1,0 +1,39 @@
+{
+  "name": "getForecast",
+  "label": "Get Forecast",
+  "description": "Generate a geopolitical forecast for a topic.",
+  "type": "action",
+  "connection": "apiKey",
+  "url": "/api/v1/forecast",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "topic": "{{parameters.topic}}",
+    "depth": "{{parameters.depth}}"
+  },
+  "parameters": [
+    {
+      "name": "topic",
+      "label": "Topic",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "depth",
+      "label": "Depth",
+      "type": "text",
+      "required": false,
+      "help": "Set to \"deep\" for extended analysis."
+    }
+  ],
+  "response": {
+    "output": "{{body}}",
+    "fields": [
+      { "name": "topic", "label": "Topic", "type": "text" },
+      { "name": "forecast", "label": "Forecast", "type": "text" },
+      { "name": "confidence", "label": "Confidence", "type": "number" }
+    ]
+  }
+}

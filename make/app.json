@@ -1,0 +1,29 @@
+{
+  "name": "polaris",
+  "label": "Polaris Knowledge API",
+  "description": "Connect to the Polaris Knowledge API for real-time intelligence briefs, geopolitical forecasts, claim verification, and entity tracking.",
+  "version": "1.0.0",
+  "baseUrl": "https://api.thepolarisreport.com",
+  "connections": [
+    {
+      "$ref": "connections/apiKey.json"
+    }
+  ],
+  "modules": [
+    {
+      "$ref": "modules/newBrief.json"
+    },
+    {
+      "$ref": "modules/searchBriefs.json"
+    },
+    {
+      "$ref": "modules/verifyClaim.json"
+    },
+    {
+      "$ref": "modules/webSearch.json"
+    },
+    {
+      "$ref": "modules/getForecast.json"
+    }
+  ]
+}

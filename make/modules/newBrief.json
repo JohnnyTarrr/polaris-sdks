@@ -1,0 +1,26 @@
+{
+  "name": "newBrief",
+  "label": "New Brief",
+  "description": "Triggers when a new intelligence brief is published.",
+  "type": "trigger",
+  "connection": "apiKey",
+  "polling": {
+    "url": "/api/v1/feed",
+    "method": "GET",
+    "parameters": {
+      "sort": "date",
+      "per_page": 5
+    },
+    "output": "{{body.articles}}",
+    "dedup": "{{item.id}}"
+  },
+  "parameters": [],
+  "response": {
+    "output": [
+      { "name": "id", "label": "Brief ID", "type": "text" },
+      { "name": "title", "label": "Title", "type": "text" },
+      { "name": "category", "label": "Category", "type": "text" },
+      { "name": "published_at", "label": "Published At", "type": "date" }
+    ]
+  }
+}

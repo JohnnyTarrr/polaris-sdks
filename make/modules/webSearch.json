@@ -1,0 +1,37 @@
+{
+  "name": "webSearch",
+  "label": "Web Search",
+  "description": "Search the web through Polaris.",
+  "type": "action",
+  "connection": "apiKey",
+  "url": "/api/v1/web-search",
+  "method": "GET",
+  "parameters": [
+    {
+      "name": "q",
+      "label": "Search Query",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "limit",
+      "label": "Limit",
+      "type": "integer",
+      "required": false
+    },
+    {
+      "name": "verify",
+      "label": "Verify Results",
+      "type": "boolean",
+      "required": false
+    }
+  ],
+  "response": {
+    "output": "{{body.results}}",
+    "fields": [
+      { "name": "title", "label": "Title", "type": "text" },
+      { "name": "url", "label": "URL", "type": "text" },
+      { "name": "snippet", "label": "Snippet", "type": "text" }
+    ]
+  }
+}

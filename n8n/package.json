@@ -1,0 +1,26 @@
+{
+  "name": "n8n-nodes-polaris",
+  "version": "1.0.0",
+  "description": "n8n community node for Polaris Knowledge API",
+  "license": "MIT",
+  "n8n": {
+    "nodes": [
+      "dist/nodes/Polaris.node.js"
+    ],
+    "credentials": [
+      "dist/credentials/PolarisApi.credentials.js"
+    ]
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "n8n-workflow": "^1.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "^1.0.0"
+  }
+}

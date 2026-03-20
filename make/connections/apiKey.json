@@ -1,0 +1,21 @@
+{
+  "name": "apiKey",
+  "label": "Polaris API Key",
+  "type": "apikey",
+  "parameters": [
+    {
+      "name": "api_key",
+      "label": "API Key",
+      "type": "text",
+      "required": true,
+      "help": "Your Polaris API key (starts with pr_)."
+    }
+  ],
+  "headers": {
+    "Authorization": "Bearer {{parameters.api_key}}"
+  },
+  "test": {
+    "url": "/api/v1/status",
+    "method": "GET"
+  }
+}
