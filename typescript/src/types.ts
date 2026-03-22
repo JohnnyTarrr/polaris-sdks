@@ -468,3 +468,296 @@ export interface PortfolioFeedResponse {
   briefs: Brief[];
   holdings: PortfolioHolding[];
 }
+
+// ── AV Parity: Candles, Financials, Earnings, Indicators, Technicals ──
+
+export interface Candle {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface CandleOptions {
+  interval?: string;
+  range?: string;
+}
+
+export interface CandleResponse {
+  status: string;
+  symbol: string;
+  name?: string;
+  interval: string;
+  range: string;
+  candle_count: number;
+  candles: Candle[];
+}
+
+export interface FinancialsResponse {
+  status: string;
+  ticker?: string;
+  company_name?: string;
+  entity_name?: string;
+  exchange?: string;
+  sector?: string;
+  [key: string]: unknown;
+}
+
+export interface EarningsResponse {
+  status: string;
+  ticker: string;
+  entity_name?: string;
+  exchange?: string;
+  sector?: string;
+  earnings_date?: string;
+  eps_estimate?: number;
+  revenue_estimate?: number;
+  fiscal_quarter?: string;
+  fetched_at?: string;
+}
+
+export interface IndicatorOptions {
+  period?: number;
+  range?: string;
+  fast?: number;
+  slow?: number;
+  signal?: number;
+  kPeriod?: number;
+  dPeriod?: number;
+  stdDev?: number;
+}
+
+export interface IndicatorResponse {
+  status: string;
+  symbol: string;
+  indicator: string;
+  [key: string]: unknown;
+}
+
+export interface TechnicalsOptions {
+  range?: string;
+}
+
+export interface TechnicalsResponse {
+  status: string;
+  symbol: string;
+  [key: string]: unknown;
+}
+
+// ── Market ──
+
+export interface MarketMover {
+  symbol: string;
+  name?: string;
+  price?: number;
+  change?: number;
+  change_percent?: number;
+  volume?: number;
+}
+
+export interface MarketMoversResponse {
+  status: string;
+  gainers: MarketMover[];
+  losers: MarketMover[];
+  most_active: MarketMover[];
+  fetched_at?: string;
+}
+
+export interface MarketIndex {
+  symbol: string;
+  name?: string;
+  price?: number;
+  change?: number;
+  change_percent?: number;
+}
+
+export interface MarketSummaryResponse {
+  status: string;
+  indices: MarketIndex[];
+  fetched_at?: string;
+}
+
+export interface MarketEarningsOptions {
+  days?: number;
+  sector?: string;
+  limit?: number;
+}
+
+export interface MarketEarningsResponse {
+  status: string;
+  [key: string]: unknown;
+}
+
+// ── Forex ──
+
+export interface ForexPair {
+  pair: string;
+  rate?: number;
+  change?: number;
+  change_percent?: number;
+}
+
+export interface ForexResponse {
+  status: string;
+  pairs: ForexPair[];
+  available?: Array<{ pair: string; label: string }>;
+  fetched_at?: string;
+}
+
+export interface ForexRateResponse {
+  status: string;
+  pair?: string;
+  rate?: number;
+  change?: number;
+  change_percent?: number;
+  [key: string]: unknown;
+}
+
+export interface ForexCandleOptions {
+  interval?: string;
+  range?: string;
+}
+
+// ── Commodities ──
+
+export interface CommodityInfo {
+  slug?: string;
+  name?: string;
+  price?: number;
+  change?: number;
+  change_percent?: number;
+}
+
+export interface CommoditiesResponse {
+  status: string;
+  commodities: CommodityInfo[];
+  available?: Array<{ slug: string; name: string }>;
+  fetched_at?: string;
+}
+
+export interface CommodityResponse {
+  status: string;
+  slug?: string;
+  name?: string;
+  price?: number;
+  change?: number;
+  change_percent?: number;
+  [key: string]: unknown;
+}
+
+export interface CommodityCandleOptions {
+  interval?: string;
+  range?: string;
+}
+
+// ── Economy ──
+
+export interface EconomyIndicatorSummary {
+  slug?: string;
+  name?: string;
+  latest_value?: number | null;
+  units?: string;
+}
+
+export interface EconomyResponse {
+  status: string;
+  indicator_count?: number;
+  indicators: EconomyIndicatorSummary[];
+  fetched_at?: string;
+}
+
+export interface EconomyIndicatorOptions {
+  limit?: number;
+}
+
+export interface EconomyIndicatorResponse {
+  status: string;
+  indicator: string;
+  name?: string;
+  series_id?: string;
+  frequency?: string;
+  units?: string;
+  latest?: unknown;
+  observation_count?: number;
+  observations?: Array<{ date: string; value: number | null }>;
+  fetched_at?: string;
+}
+
+export interface YieldCurveYield {
+  maturity: string;
+  rate?: number;
+}
+
+export interface YieldCurveResponse {
+  status: string;
+  yields: YieldCurveYield[];
+  spread_10y_2y?: number;
+  inverted?: boolean;
+  fetched_at?: string;
+}
+
+// ── Crypto ──
+
+export interface CryptoResponse {
+  status: string;
+  total_market_cap?: number;
+  btc_dominance?: number;
+  [key: string]: unknown;
+}
+
+export interface CryptoTokenResponse {
+  status: string;
+  symbol?: string;
+  name?: string;
+  price?: number;
+  market_cap?: number;
+  volume_24h?: number;
+  change_24h?: number;
+  [key: string]: unknown;
+}
+
+export interface CryptoTopOptions {
+  limit?: number;
+}
+
+export interface CryptoTopResponse {
+  status: string;
+  count: number;
+  tokens: Array<Record<string, unknown>>;
+  fetched_at?: string;
+}
+
+export interface CryptoChartOptions {
+  days?: number;
+}
+
+export interface CryptoChartPoint {
+  timestamp: number;
+  price: number;
+  volume?: number;
+}
+
+export interface CryptoChartResponse {
+  status: string;
+  symbol: string;
+  coin_id?: string;
+  days: number;
+  data_points: number;
+  chart: CryptoChartPoint[];
+}
+
+export interface DefiResponse {
+  status: string;
+  total_tvl?: number;
+  [key: string]: unknown;
+}
+
+export interface DefiProtocolResponse {
+  status: string;
+  name?: string;
+  slug?: string;
+  tvl?: number;
+  [key: string]: unknown;
+}

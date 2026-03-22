@@ -23,12 +23,29 @@ import type {
   AgentFeedOptions,
   Brief,
   BriefOptions,
+  CandleOptions,
+  CandleResponse,
   ClustersOptions,
   ClustersResponse,
+  CommoditiesResponse,
+  CommodityCandleOptions,
+  CommodityResponse,
   ComparisonResponse,
+  CryptoChartOptions,
+  CryptoChartResponse,
+  CryptoResponse,
+  CryptoTokenResponse,
+  CryptoTopOptions,
+  CryptoTopResponse,
   DataOptions,
   DataResponse,
+  DefiProtocolResponse,
+  DefiResponse,
   DepthMetadata,
+  EarningsResponse,
+  EconomyIndicatorOptions,
+  EconomyIndicatorResponse,
+  EconomyResponse,
   Entity,
   EntitiesOptions,
   EntitiesResponse,
@@ -39,6 +56,16 @@ import type {
   ExtractResult,
   FeedOptions,
   FeedResponse,
+  FinancialsResponse,
+  ForexCandleOptions,
+  ForexRateResponse,
+  ForexResponse,
+  IndicatorOptions,
+  IndicatorResponse,
+  MarketEarningsOptions,
+  MarketEarningsResponse,
+  MarketMoversResponse,
+  MarketSummaryResponse,
   PolarisClientOptions,
   PortfolioFeedOptions,
   PortfolioFeedResponse,
@@ -56,6 +83,8 @@ import type {
   Source,
   SourceAnalysis,
   StreamOptions,
+  TechnicalsOptions,
+  TechnicalsResponse,
   TickerCorrelationsOptions,
   TickerCorrelationsResponse,
   TickerHistoryOptions,
@@ -68,6 +97,7 @@ import type {
   TrendingOptions,
   VerifyOptions,
   VerifyResponse,
+  YieldCurveResponse,
 } from "./types.js";
 
 const DEFAULT_BASE_URL = "https://api.thepolarisreport.com";
@@ -599,6 +629,106 @@ export class PolarisClient {
   async portfolioFeed(holdings: PortfolioHolding[], options: PortfolioFeedOptions = {}): Promise<PortfolioFeedResponse> {
     const body: Record<string, unknown> = { holdings, ...options };
     return this.request<PortfolioFeedResponse>("POST", "/api/v1/portfolio/feed", undefined, body);
+  }
+
+  // ── AV Parity ──
+
+  async candles(symbol: string, options: CandleOptions = {}): Promise<CandleResponse> {
+    const params: Record<string, unknown> = { ...options };
+    return this.request<CandleResponse>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/candles`, params);
+  }
+
+  async financials(symbol: string): Promise<FinancialsResponse> {
+    return this.request<FinancialsResponse>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/financials`);
+  }
+
+  async earnings(symbol: string): Promise<EarningsResponse> {
+    return this.request<EarningsResponse>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/earnings`);
+  }
+
+  async indicators(symbol: string, type: string, options: IndicatorOptions = {}): Promise<IndicatorResponse> {
+    const params: Record<string, unknown> = { type, ...options };
+    return this.request<IndicatorResponse>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/indicators`, params);
+  }
+
+  async technicals(symbol: string, options: TechnicalsOptions = {}): Promise<TechnicalsResponse> {
+    const params: Record<string, unknown> = { ...options };
+    return this.request<TechnicalsResponse>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/technicals`, params);
+  }
+
+  async marketMovers(): Promise<MarketMoversResponse> {
+    return this.request<MarketMoversResponse>("GET", "/api/v1/market/movers");
+  }
+
+  async marketSummary(): Promise<MarketSummaryResponse> {
+    return this.request<MarketSummaryResponse>("GET", "/api/v1/market/summary");
+  }
+
+  async marketEarnings(options: MarketEarningsOptions = {}): Promise<MarketEarningsResponse> {
+    const params: Record<string, unknown> = { ...options };
+    return this.request<MarketEarningsResponse>("GET", "/api/v1/market/earnings", params);
+  }
+
+  async forex(pair?: string): Promise<ForexResponse | ForexRateResponse> {
+    if (pair) {
+      return this.request<ForexRateResponse>("GET", `/api/v1/forex/${encodeURIComponent(pair)}`);
+    }
+    return this.request<ForexResponse>("GET", "/api/v1/forex");
+  }
+
+  async forexCandles(pair: string, options: ForexCandleOptions = {}): Promise<CandleResponse> {
+    const params: Record<string, unknown> = { ...options };
+    return this.request<CandleResponse>("GET", `/api/v1/forex/${encodeURIComponent(pair)}/candles`, params);
+  }
+
+  async commodities(symbol?: string): Promise<CommoditiesResponse | CommodityResponse> {
+    if (symbol) {
+      return this.request<CommodityResponse>("GET", `/api/v1/commodities/${encodeURIComponent(symbol)}`);
+    }
+    return this.request<CommoditiesResponse>("GET", "/api/v1/commodities");
+  }
+
+  async commodityCandles(symbol: string, options: CommodityCandleOptions = {}): Promise<CandleResponse> {
+    const params: Record<string, unknown> = { ...options };
+    return this.request<CandleResponse>("GET", `/api/v1/commodities/${encodeURIComponent(symbol)}/candles`, params);
+  }
+
+  async economy(indicator?: string, options: EconomyIndicatorOptions = {}): Promise<EconomyResponse | EconomyIndicatorResponse> {
+    if (indicator) {
+      const params: Record<string, unknown> = { ...options };
+      return this.request<EconomyIndicatorResponse>("GET", `/api/v1/economy/${encodeURIComponent(indicator)}`, params);
+    }
+    return this.request<EconomyResponse>("GET", "/api/v1/economy");
+  }
+
+  async economyYields(): Promise<YieldCurveResponse> {
+    return this.request<YieldCurveResponse>("GET", "/api/v1/economy/yields");
+  }
+
+  // ── Crypto ──
+
+  async crypto(symbol?: string): Promise<CryptoResponse | CryptoTokenResponse> {
+    if (symbol) {
+      return this.request<CryptoTokenResponse>("GET", `/api/v1/crypto/${encodeURIComponent(symbol)}`);
+    }
+    return this.request<CryptoResponse>("GET", "/api/v1/crypto");
+  }
+
+  async cryptoTop(options: CryptoTopOptions = {}): Promise<CryptoTopResponse> {
+    const params: Record<string, unknown> = { ...options };
+    return this.request<CryptoTopResponse>("GET", "/api/v1/crypto/top", params);
+  }
+
+  async cryptoChart(symbol: string, options: CryptoChartOptions = {}): Promise<CryptoChartResponse> {
+    const params: Record<string, unknown> = { ...options };
+    return this.request<CryptoChartResponse>("GET", `/api/v1/crypto/${encodeURIComponent(symbol)}/chart`, params);
+  }
+
+  async cryptoDefi(protocol?: string): Promise<DefiResponse | DefiProtocolResponse> {
+    if (protocol) {
+      return this.request<DefiProtocolResponse>("GET", `/api/v1/crypto/defi/${encodeURIComponent(protocol)}`);
+    }
+    return this.request<DefiResponse>("GET", "/api/v1/crypto/defi");
   }
 
   stream(options: StreamOptions = {}): { start: (onBrief: (brief: Brief) => void, onError?: (error: Error) => void) => void; stop: () => void } {

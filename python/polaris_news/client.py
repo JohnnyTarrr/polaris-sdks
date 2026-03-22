@@ -513,3 +513,104 @@ class PolarisClient:
         body = {"holdings": holdings}
         params = {"days": days, "limit": limit}
         return self._request("POST", "/api/v1/portfolio/feed", params=params, json_body=body)
+
+    # ── Market Data ──
+
+    def candles(self, symbol, interval='1d', range='6mo'):
+        """Get OHLCV candle data for a ticker."""
+        params = {"interval": interval, "range": range}
+        return self._request("GET", "/api/v1/ticker/{}/candles".format(symbol), params=params)
+
+    def financials(self, symbol):
+        """Get financial statements for a ticker."""
+        return self._request("GET", "/api/v1/ticker/{}/financials".format(symbol))
+
+    def earnings(self, symbol):
+        """Get earnings data for a ticker."""
+        return self._request("GET", "/api/v1/ticker/{}/earnings".format(symbol))
+
+    def indicators(self, symbol, type, period=None, range='6mo'):
+        """Get technical indicators for a ticker."""
+        params = {"type": type, "range": range}
+        if period is not None:
+            params["period"] = period
+        return self._request("GET", "/api/v1/ticker/{}/indicators".format(symbol), params=params)
+
+    def technicals(self, symbol, range='6mo'):
+        """Get full technical analysis for a ticker."""
+        params = {"range": range}
+        return self._request("GET", "/api/v1/ticker/{}/technicals".format(symbol), params=params)
+
+    def market_movers(self):
+        """Get top market movers (gainers, losers, most active)."""
+        return self._request("GET", "/api/v1/market/movers")
+
+    def market_summary(self):
+        """Get broad market summary (indices, sectors, volatility)."""
+        return self._request("GET", "/api/v1/market/summary")
+
+    def market_earnings(self, days=14, sector=None):
+        """Get upcoming earnings calendar."""
+        params = {"days": days}
+        if sector is not None:
+            params["sector"] = sector
+        return self._request("GET", "/api/v1/market/earnings", params=params)
+
+    def forex(self, pair=None):
+        """Get forex data. If pair is given, get that pair; otherwise list all."""
+        if pair is not None:
+            return self._request("GET", "/api/v1/forex/{}".format(pair))
+        return self._request("GET", "/api/v1/forex")
+
+    def forex_candles(self, pair, interval='1d', range='3mo'):
+        """Get OHLCV candle data for a forex pair."""
+        params = {"interval": interval, "range": range}
+        return self._request("GET", "/api/v1/forex/{}/candles".format(pair), params=params)
+
+    def commodities(self, symbol=None):
+        """Get commodities data. If symbol is given, get that commodity; otherwise list all."""
+        if symbol is not None:
+            return self._request("GET", "/api/v1/commodities/{}".format(symbol))
+        return self._request("GET", "/api/v1/commodities")
+
+    def commodity_candles(self, symbol, interval='1d', range='3mo'):
+        """Get OHLCV candle data for a commodity."""
+        params = {"interval": interval, "range": range}
+        return self._request("GET", "/api/v1/commodities/{}/candles".format(symbol), params=params)
+
+    def economy(self, indicator=None, limit=None):
+        """Get economic data. If indicator is given, get that series; otherwise list all."""
+        params = {}
+        if limit is not None:
+            params["limit"] = limit
+        if indicator is not None:
+            return self._request("GET", "/api/v1/economy/{}".format(indicator), params=params or None)
+        return self._request("GET", "/api/v1/economy", params=params or None)
+
+    def economy_yields(self):
+        """Get Treasury yield curve data."""
+        return self._request("GET", "/api/v1/economy/yields")
+
+    # ── Crypto ──
+
+    def crypto(self, symbol=None):
+        """Get crypto data. If symbol is given, get that coin; otherwise list all."""
+        if symbol is not None:
+            return self._request("GET", "/api/v1/crypto/{}".format(symbol))
+        return self._request("GET", "/api/v1/crypto")
+
+    def crypto_top(self, limit=20):
+        """Get top cryptocurrencies by market cap."""
+        params = {"limit": limit}
+        return self._request("GET", "/api/v1/crypto/top", params=params)
+
+    def crypto_chart(self, symbol, days=30):
+        """Get price chart data for a cryptocurrency."""
+        params = {"days": days}
+        return self._request("GET", "/api/v1/crypto/{}/chart".format(symbol), params=params)
+
+    def crypto_defi(self, protocol=None):
+        """Get DeFi protocol data. If protocol is given, get that one; otherwise list all."""
+        if protocol is not None:
+            return self._request("GET", "/api/v1/crypto/defi/{}".format(protocol))
+        return self._request("GET", "/api/v1/crypto/defi")
