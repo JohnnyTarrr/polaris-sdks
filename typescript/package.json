@@ -1,7 +1,7 @@
 {
   "name": "polaris-news-api",
   "version": "0.6.0",
-  "description": "Official TypeScript SDK for The Polaris Report API",
+  "description": "Official TypeScript SDK for The Polaris Report Knowledge API — real-time news intelligence for AI agents and applications.",
   "type": "module",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -22,12 +22,15 @@
     "polaris": "./dist/esm/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "README.md"
   ],
   "scripts": {
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build": "npm run build:esm && npm run build:cjs",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -35,15 +38,33 @@
     "polaris",
     "news",
     "api",
-    "sdk"
+    "sdk",
+    "knowledge",
+    "ai",
+    "agents",
+    "intelligence",
+    "typescript",
+    "nlp"
   ],
-  "author": "The Polaris Report",
+  "author": {
+    "name": "The Polaris Report",
+    "email": "dev@thepolarisreport.com",
+    "url": "https://thepolarisreport.com"
+  },
   "license": "MIT",
   "homepage": "https://thepolarisreport.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/polaris-news/polaris-sdks"
+    "url": "https://github.com/polaris-news/polaris-sdks",
+    "directory": "typescript"
   },
+  "bugs": {
+    "url": "https://github.com/polaris-news/polaris-sdks/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
   "devDependencies": {
     "@types/node": "^25.5.0",
     "typescript": "^5.4.0",

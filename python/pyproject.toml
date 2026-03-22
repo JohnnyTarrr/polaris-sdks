@@ -5,14 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "polaris-news"
 version = "0.5.0"
-description = "Official Python SDK for The Polaris Report API"
+description = "Official Python SDK for The Polaris Report Knowledge API — real-time news intelligence for AI agents and applications."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.8"
 authors = [
     { name = "The Polaris Report", email = "dev@thepolarisreport.com" },
 ]
-keywords = ["polaris", "news", "api", "sdk"]
+keywords = ["polaris", "news", "api", "sdk", "knowledge", "ai", "agents", "nlp", "intelligence"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -23,6 +23,10 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
 ]
 dependencies = [
     "requests>=2.20",
@@ -37,7 +41,15 @@ async = ["httpx>=0.24"]
 [project.urls]
 Homepage = "https://thepolarisreport.com"
 Documentation = "https://thepolarisreport.com/docs"
-Repository = "https://github.com/JohnnyTarrr/polaris-sdks"
+Repository = "https://github.com/polaris-news/polaris-sdks"
+"Bug Tracker" = "https://github.com/polaris-news/polaris-sdks/issues"
+Changelog = "https://thepolarisreport.com/docs/changelog"
+
+[tool.hatch.build.targets.sdist]
+include = ["polaris_news/", "LICENSE", "README.md"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["polaris_news"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

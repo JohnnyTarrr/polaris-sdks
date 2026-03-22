@@ -1,3 +1,5 @@
+__version__ = "0.5.0"
+
 from .client import PolarisClient
 from .exceptions import APIError, AuthenticationError, NotFoundError, PolarisError, RateLimitError
 from .types import (
