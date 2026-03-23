@@ -1,6 +1,6 @@
 {
   "name": "polaris-news-api",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Official TypeScript SDK for The Polaris Report Knowledge API — real-time news intelligence for AI agents and applications.",
   "type": "module",
   "main": "./dist/cjs/index.js",

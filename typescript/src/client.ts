@@ -98,6 +98,22 @@ import type {
   VerifyOptions,
   VerifyResponse,
   YieldCurveResponse,
+  ScreenerFilters,
+  ScreenerResponse,
+  ScreenerNaturalOptions,
+  ScreenerPresetsResponse,
+  AlertOptions,
+  AlertsResponse,
+  TriggeredAlertsOptions,
+  BacktestStrategy,
+  BacktestOptions,
+  BacktestResponse,
+  CorrelationOptions,
+  CorrelationResponse,
+  NewsImpactResponse,
+  CompetitorsResponse,
+  TranscriptsOptions,
+  TranscriptsResponse,
 } from "./types.js";
 
 const DEFAULT_BASE_URL = "https://api.thepolarisreport.com";
@@ -729,6 +745,81 @@ export class PolarisClient {
       return this.request<DefiProtocolResponse>("GET", `/api/v1/crypto/defi/${encodeURIComponent(protocol)}`);
     }
     return this.request<DefiResponse>("GET", "/api/v1/crypto/defi");
+  }
+
+  // ── Screener ──
+
+  async screener(filters: ScreenerFilters): Promise<ScreenerResponse> {
+    return this.request<ScreenerResponse>("POST", "/api/v1/screener", undefined, filters);
+  }
+
+  async screenerNatural(query: string, options: ScreenerNaturalOptions = {}): Promise<ScreenerResponse> {
+    const body: Record<string, unknown> = { query };
+    if (options.limit !== undefined) body.limit = options.limit;
+    return this.request<ScreenerResponse>("POST", "/api/v1/screener/natural", undefined, body);
+  }
+
+  async screenerPresets(): Promise<ScreenerPresetsResponse> {
+    return this.request<ScreenerPresetsResponse>("GET", "/api/v1/screener/presets");
+  }
+
+  async screenerPreset(id: string, options: Record<string, unknown> = {}): Promise<ScreenerResponse> {
+    const params: Record<string, unknown> = { ...options };
+    return this.request<ScreenerResponse>("GET", `/api/v1/screener/presets/${encodeURIComponent(id)}`, params);
+  }
+
+  // ── Alerts ──
+
+  async createAlert(ticker: string, alertType: string, threshold: number, options: AlertOptions = {}): Promise<Record<string, unknown>> {
+    const body: Record<string, unknown> = { ticker, alert_type: alertType, threshold };
+    if (options.callbackUrl !== undefined) body.callback_url = options.callbackUrl;
+    return this.request<Record<string, unknown>>("POST", "/api/v1/alerts", undefined, body);
+  }
+
+  async listAlerts(status?: string): Promise<AlertsResponse> {
+    const params: Record<string, unknown> = {};
+    if (status !== undefined) params.status = status;
+    return this.request<AlertsResponse>("GET", "/api/v1/alerts", params);
+  }
+
+  async deleteAlert(id: string): Promise<Record<string, unknown>> {
+    return this.request<Record<string, unknown>>("DELETE", `/api/v1/alerts/${encodeURIComponent(id)}`);
+  }
+
+  async triggeredAlerts(options: TriggeredAlertsOptions = {}): Promise<AlertsResponse> {
+    const params: Record<string, unknown> = { ...options };
+    return this.request<AlertsResponse>("GET", "/api/v1/alerts/triggered", params);
+  }
+
+  // ── Backtest ──
+
+  async backtest(strategy: BacktestStrategy, options: BacktestOptions = {}): Promise<BacktestResponse> {
+    const body: Record<string, unknown> = { strategy, period: options.period ?? "1y", ...options };
+    delete body.period;
+    body.period = options.period ?? "1y";
+    return this.request<BacktestResponse>("POST", "/api/v1/backtest", undefined, body);
+  }
+
+  // ── Correlation ──
+
+  async correlation(tickers: string[], options: CorrelationOptions = {}): Promise<CorrelationResponse> {
+    const body: Record<string, unknown> = { tickers, days: options.days ?? 30 };
+    return this.request<CorrelationResponse>("POST", "/api/v1/correlation", undefined, body);
+  }
+
+  // ── Ticker Intelligence ──
+
+  async newsImpact(symbol: string): Promise<NewsImpactResponse> {
+    return this.request<NewsImpactResponse>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/impact`);
+  }
+
+  async competitors(symbol: string): Promise<CompetitorsResponse> {
+    return this.request<CompetitorsResponse>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/competitors`);
+  }
+
+  async transcripts(symbol: string, options: TranscriptsOptions = {}): Promise<TranscriptsResponse> {
+    const params: Record<string, unknown> = { ...options };
+    return this.request<TranscriptsResponse>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/transcripts`, params);
   }
 
   stream(options: StreamOptions = {}): { start: (onBrief: (brief: Brief) => void, onError?: (error: Error) => void) => void; stop: () => void } {

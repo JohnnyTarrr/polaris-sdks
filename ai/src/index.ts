@@ -28,3 +28,8 @@ export { polarisForex } from "./tools/polaris-forex.js";
 export { polarisCommodities } from "./tools/polaris-commodities.js";
 export { polarisCrypto } from "./tools/polaris-crypto.js";
 export { polarisCryptoDefi } from "./tools/polaris-crypto-defi.js";
+export { polarisBacktest } from "./tools/polaris-backtest.js";
+export { polarisCorrelation } from "./tools/polaris-correlation.js";
+export { polarisScreener } from "./tools/polaris-screener.js";
+export { polarisNewsImpact } from "./tools/polaris-news-impact.js";
+export { polarisCompetitors } from "./tools/polaris-competitors.js";

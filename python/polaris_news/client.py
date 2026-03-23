@@ -614,3 +614,87 @@ class PolarisClient:
         if protocol is not None:
             return self._request("GET", "/api/v1/crypto/defi/{}".format(protocol))
         return self._request("GET", "/api/v1/crypto/defi")
+
+    # ── Screener ──
+
+    def screener(self, filters):
+        """Screen stocks by filters (sentiment, sector, technicals, etc.)."""
+        return self._request("POST", "/api/v1/screener", json_body=filters)
+
+    def screener_natural(self, query, limit=None):
+        """Screen stocks using natural language query."""
+        body = {"query": query}
+        if limit is not None:
+            body["limit"] = limit
+        return self._request("POST", "/api/v1/screener/natural", json_body=body)
+
+    def screener_presets(self):
+        """List available screener presets."""
+        return self._request("GET", "/api/v1/screener/presets")
+
+    def screener_preset(self, preset_id, **kwargs):
+        """Run a screener preset by ID."""
+        params = {}
+        params.update(kwargs)
+        return self._request("GET", "/api/v1/screener/presets/{}".format(preset_id), params=params or None)
+
+    # ── Alerts ──
+
+    def create_alert(self, ticker, alert_type, threshold, callback_url=None):
+        """Create a price/sentiment alert for a ticker."""
+        body = {"ticker": ticker, "alert_type": alert_type, "threshold": threshold}
+        if callback_url is not None:
+            body["callback_url"] = callback_url
+        return self._request("POST", "/api/v1/alerts", json_body=body)
+
+    def list_alerts(self, status=None):
+        """List all alerts, optionally filtered by status."""
+        params = {}
+        if status is not None:
+            params["status"] = status
+        return self._request("GET", "/api/v1/alerts", params=params or None)
+
+    def delete_alert(self, alert_id):
+        """Delete an alert by ID."""
+        return self._request("DELETE", "/api/v1/alerts/{}".format(alert_id))
+
+    def triggered_alerts(self, since=None, limit=None):
+        """Get recently triggered alerts."""
+        params = {}
+        if since is not None:
+            params["since"] = since
+        if limit is not None:
+            params["limit"] = limit
+        return self._request("GET", "/api/v1/alerts/triggered", params=params or None)
+
+    # ── Backtest ──
+
+    def backtest(self, strategy, period='1y', **kwargs):
+        """Backtest a news-driven trading strategy."""
+        body = {"strategy": strategy, "period": period}
+        body.update(kwargs)
+        return self._request("POST", "/api/v1/backtest", json_body=body)
+
+    # ── Cross-Ticker Correlation ──
+
+    def correlation(self, tickers, days=30):
+        """Get correlation matrix for multiple tickers."""
+        body = {"tickers": tickers, "days": days}
+        return self._request("POST", "/api/v1/correlation", json_body=body)
+
+    # ── Ticker Intelligence ──
+
+    def news_impact(self, symbol):
+        """Get news impact analysis for a ticker."""
+        return self._request("GET", "/api/v1/ticker/{}/impact".format(symbol))
+
+    def competitors(self, symbol):
+        """Get competitor landscape for a ticker."""
+        return self._request("GET", "/api/v1/ticker/{}/competitors".format(symbol))
+
+    def transcripts(self, symbol, days=None):
+        """Get earnings call transcripts for a ticker."""
+        params = {}
+        if days is not None:
+            params["days"] = days
+        return self._request("GET", "/api/v1/ticker/{}/transcripts".format(symbol), params=params or None)

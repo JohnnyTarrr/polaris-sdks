@@ -761,3 +761,152 @@ export interface DefiProtocolResponse {
   tvl?: number;
   [key: string]: unknown;
 }
+
+// ── Screener ──
+
+export interface ScreenerFilters {
+  sentiment_above?: number;
+  sentiment_below?: number;
+  sector?: string;
+  rsi_below?: number;
+  rsi_above?: number;
+  market_cap_min?: number;
+  market_cap_max?: number;
+  volume_min?: number;
+  earnings_within_days?: number;
+  asset_type?: string;
+  sort?: string;
+  limit?: number;
+  [key: string]: unknown;
+}
+
+export interface ScreenerResult {
+  ticker: string;
+  name?: string;
+  sector?: string;
+  sentiment_score?: number;
+  rsi?: number;
+  price?: number;
+  market_cap?: number;
+  [key: string]: unknown;
+}
+
+export interface ScreenerResponse {
+  status: string;
+  results: ScreenerResult[];
+  total?: number;
+  filters_applied?: Record<string, unknown>;
+}
+
+export interface ScreenerNaturalOptions {
+  limit?: number;
+}
+
+export interface ScreenerPreset {
+  id: string;
+  name: string;
+  description?: string;
+  filters: Record<string, unknown>;
+}
+
+export interface ScreenerPresetsResponse {
+  status: string;
+  presets: ScreenerPreset[];
+}
+
+// ── Alerts ──
+
+export interface AlertOptions {
+  callbackUrl?: string;
+}
+
+export interface Alert {
+  id: string;
+  ticker: string;
+  alertType: string;
+  threshold: number;
+  status?: string;
+  callbackUrl?: string;
+  createdAt?: string;
+  triggeredAt?: string;
+}
+
+export interface AlertsResponse {
+  status: string;
+  alerts: Alert[];
+}
+
+export interface TriggeredAlertsOptions {
+  since?: string;
+  limit?: number;
+}
+
+// ── Backtest ──
+
+export interface BacktestStrategy {
+  entry_filters: Record<string, unknown>;
+  exit_filters: Record<string, unknown>;
+  asset_type?: string;
+  sector?: string;
+  [key: string]: unknown;
+}
+
+export interface BacktestOptions {
+  period?: string;
+  [key: string]: unknown;
+}
+
+export interface BacktestResponse {
+  status: string;
+  performance: {
+    total_return_pct: number;
+    max_drawdown_pct?: number;
+    sharpe_ratio?: number;
+    win_rate?: number;
+    total_trades?: number;
+    [key: string]: unknown;
+  };
+  trades?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+}
+
+// ── Correlation ──
+
+export interface CorrelationOptions {
+  days?: number;
+}
+
+export interface CorrelationResponse {
+  status: string;
+  tickers: string[];
+  matrix: number[][];
+  period_days?: number;
+  [key: string]: unknown;
+}
+
+// ── Ticker Intelligence ──
+
+export interface NewsImpactResponse {
+  status: string;
+  symbol: string;
+  impacts?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+}
+
+export interface CompetitorsResponse {
+  status: string;
+  symbol: string;
+  competitors?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+}
+
+export interface TranscriptsOptions {
+  days?: number;
+}
+
+export interface TranscriptsResponse {
+  status: string;
+  symbol: string;
+  transcripts?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+}

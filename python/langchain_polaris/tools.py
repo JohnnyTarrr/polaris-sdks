@@ -910,6 +910,154 @@ class PolarisCryptoTool(BaseTool):
         return "\n".join(lines)
 
 
+class BacktestInput(BaseModel):
+    strategy: str = Field(description='JSON strategy object with entry_filters and exit_filters, e.g. \'{"entry_filters":{"rsi_below":30},"exit_filters":{"rsi_above":50},"asset_type":"equity","sector":"Semiconductors"}\'')
+    period: Optional[str] = Field(default=None, description="Backtest period (e.g. 1y, 6mo, 3mo). Default: 1y")
+
+
+class PolarisBacktestTool(BaseTool):
+    name: str = "polaris_backtest"
+    description: str = "Backtest a news-driven trading strategy. Define entry/exit filters based on sentiment, RSI, and other signals, then see historical performance including return, drawdown, Sharpe ratio, and win rate."
+    args_schema: Type[BaseModel] = BacktestInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, strategy: str, period: str = None) -> str:
+        import json as _json
+        try:
+            strategy_obj = _json.loads(strategy)
+        except (_json.JSONDecodeError, TypeError):
+            return "Invalid strategy JSON. Expected format: {\"entry_filters\": {...}, \"exit_filters\": {...}}"
+        client = PolarisClient(api_key=self.api_key)
+        result = client.backtest(strategy_obj, period=period or '1y')
+        perf = result.get("performance", {})
+        lines = ["Backtest Results ({} period):".format(result.get("period", period or "1y"))]
+        lines.append("Total Return: {}%".format(perf.get("total_return_pct", "N/A")))
+        lines.append("Max Drawdown: {}%".format(perf.get("max_drawdown_pct", "N/A")))
+        lines.append("Sharpe Ratio: {}".format(perf.get("sharpe_ratio", "N/A")))
+        lines.append("Win Rate: {}%".format(perf.get("win_rate", "N/A")))
+        lines.append("Total Trades: {}".format(perf.get("total_trades", "N/A")))
+        return "\n".join(lines)
+
+
+class CorrelationInput(BaseModel):
+    tickers: str = Field(description="Comma-separated ticker symbols to correlate (e.g. 'NVDA,AMD,INTC')")
+    days: Optional[int] = Field(default=None, description="Lookback period in days (default 30)")
+
+
+class PolarisCorrelationTool(BaseTool):
+    name: str = "polaris_correlation"
+    description: str = "Get a news-sentiment correlation matrix for multiple tickers. Shows how closely related their coverage patterns and sentiment movements are over a given period."
+    args_schema: Type[BaseModel] = CorrelationInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, tickers: str, days: int = None) -> str:
+        ticker_list = [t.strip() for t in tickers.split(",") if t.strip()]
+        if len(ticker_list) < 2:
+            return "At least 2 tickers are required for correlation analysis."
+        client = PolarisClient(api_key=self.api_key)
+        result = client.correlation(ticker_list, days=days or 30)
+        lines = ["Correlation Matrix ({} day lookback):".format(result.get("period_days", days or 30))]
+        matrix = result.get("matrix", [])
+        result_tickers = result.get("tickers", ticker_list)
+        # Header row
+        lines.append("       " + "  ".join("{:>6}".format(t) for t in result_tickers))
+        for i, row in enumerate(matrix):
+            label = "{:<6}".format(result_tickers[i] if i < len(result_tickers) else "?")
+            vals = "  ".join("{:>6.2f}".format(v) if isinstance(v, (int, float)) else "{:>6}".format("N/A") for v in row)
+            lines.append("{} {}".format(label, vals))
+        return "\n".join(lines)
+
+
+class ScreenerInput(BaseModel):
+    query: str = Field(description="Natural language screening query (e.g. 'oversold tech stocks with upcoming earnings')")
+    limit: Optional[int] = Field(default=None, description="Max results to return (default 20)")
+
+
+class PolarisScreenerTool(BaseTool):
+    name: str = "polaris_screener"
+    description: str = "Screen stocks using natural language. Describe what you're looking for and get matching tickers with sentiment scores, technicals, and sector data."
+    args_schema: Type[BaseModel] = ScreenerInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, query: str, limit: int = None) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.screener_natural(query, limit=limit)
+        results = result.get("results", [])
+        if not results:
+            return "No stocks found matching '{}'.".format(query)
+        lines = ["Screener results for '{}':".format(query)]
+        for r in results[:20]:
+            lines.append("- {} ({}) — sentiment: {}, sector: {}".format(
+                r.get("ticker", "?"),
+                r.get("name", "?"),
+                r.get("sentiment_score", "N/A"),
+                r.get("sector", "N/A"),
+            ))
+        return "\n".join(lines)
+
+
+class NewsImpactInput(BaseModel):
+    symbol: str = Field(description="Ticker symbol to analyze news impact for (e.g. 'NVDA')")
+
+
+class PolarisNewsImpactTool(BaseTool):
+    name: str = "polaris_news_impact"
+    description: str = "Analyze the impact of news coverage on a ticker's price and sentiment. Shows how recent news events correlated with price movements."
+    args_schema: Type[BaseModel] = NewsImpactInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, symbol: str) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.news_impact(symbol)
+        import json
+        return json.dumps(result, indent=2, default=str)
+
+
+class CompetitorsInput(BaseModel):
+    symbol: str = Field(description="Ticker symbol to get competitors for (e.g. 'NVDA')")
+
+
+class PolarisCompetitorsTool(BaseTool):
+    name: str = "polaris_competitors"
+    description: str = "Get the competitive landscape for a ticker. Returns competitors with comparative sentiment, coverage volume, and sector positioning."
+    args_schema: Type[BaseModel] = CompetitorsInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, symbol: str) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.competitors(symbol)
+        competitors = result.get("competitors", [])
+        if not competitors:
+            return "No competitor data found for '{}'.".format(symbol)
+        lines = ["Competitors for {} ({}):".format(
+            result.get("symbol", symbol),
+            result.get("name", ""),
+        )]
+        for c in competitors:
+            lines.append("- {} ({}) — sentiment: {}, briefs: {}".format(
+                c.get("ticker", c.get("symbol", "?")),
+                c.get("name", "?"),
+                c.get("sentiment_score", "N/A"),
+                c.get("brief_count", "N/A"),
+            ))
+        return "\n".join(lines)
+
+
 class DefiInput(BaseModel):
     protocol: Optional[str] = Field(default=None, description="DeFi protocol slug (e.g. aave, uniswap, lido). Omit for overview.")
 
