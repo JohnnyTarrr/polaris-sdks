@@ -1,12 +1,9 @@
-from typing import Optional, Type
+from typing import List, Optional, Type
 
-import requests
-from crewai.tools import BaseTool
+from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
 
 from polaris_news import PolarisClient
-
-BASE_URL = "https://api.thepolarisreport.com"
 
 
 class SearchInput(BaseModel):
@@ -122,6 +119,28 @@ class PolarisBriefTool(BaseTool):
         if b.sources:
             parts.append("Sources: {}".format(", ".join(s.name for s in b.sources)))
         return "\n".join(parts)
+
+
+class TimelineInput(BaseModel):
+    brief_id: str = Field(description="Brief ID to get the story evolution timeline for")
+
+
+class PolarisTimelineTool(BaseTool):
+    name: str = "polaris_timeline"
+    description: str = "Get the story evolution timeline for a living brief, showing how it developed over time with versioned updates."
+    args_schema: Type[BaseModel] = TimelineInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, brief_id: str) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.timeline(brief_id)
+        if not result:
+            return "No timeline found for brief '{}'.".format(brief_id)
+        import json
+        return json.dumps(result, indent=2, default=str)
 
 
 class ExtractInput(BaseModel):
@@ -271,6 +290,115 @@ class PolarisCompareTool(BaseTool):
         return "\n".join(lines)
 
 
+class ForecastInput(BaseModel):
+    topic: str = Field(description="Topic to forecast future developments for")
+    depth: Optional[str] = Field(default=None, description="Analysis depth: fast, standard, or deep")
+
+
+class PolarisForecastTool(BaseTool):
+    name: str = "polaris_forecast"
+    description: str = "Generate a forward-looking forecast for a topic based on current intelligence trends, momentum signals, and historical patterns."
+    args_schema: Type[BaseModel] = ForecastInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, topic: str, depth: str = None) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.forecast(topic, depth=depth)
+        import json
+        return json.dumps(result, indent=2, default=str)
+
+
+class ContradictionsInput(BaseModel):
+    severity: Optional[str] = Field(default=None, description="Filter by severity level (e.g. high, medium, low)")
+
+
+class PolarisContradictionsTool(BaseTool):
+    name: str = "polaris_contradictions"
+    description: str = "Find contradictions across the intelligence brief network — stories where sources disagree on facts, framing, or conclusions."
+    args_schema: Type[BaseModel] = ContradictionsInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, severity: str = None) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.contradictions(severity=severity)
+        import json
+        return json.dumps(result, indent=2, default=str)
+
+
+class EventsInput(BaseModel):
+    type: Optional[str] = Field(default=None, description="Event type to filter by")
+    subject: Optional[str] = Field(default=None, description="Subject or entity to filter events for")
+
+
+class PolarisEventsTool(BaseTool):
+    name: str = "polaris_events"
+    description: str = "Get notable events detected across intelligence briefs — significant developments, announcements, and inflection points."
+    args_schema: Type[BaseModel] = EventsInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, type: str = None, subject: str = None) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.events(type=type, subject=subject)
+        import json
+        return json.dumps(result, indent=2, default=str)
+
+
+class WebSearchInput(BaseModel):
+    query: str = Field(description="Web search query")
+    limit: Optional[int] = Field(default=None, description="Max results to return (default 5)")
+    freshness: Optional[str] = Field(default=None, description="Freshness filter (e.g. 'day', 'week', 'month')")
+    region: Optional[str] = Field(default=None, description="Region code (e.g. 'us', 'eu')")
+    verify: Optional[bool] = Field(default=None, description="Enable Polaris trust scoring on results")
+
+
+class PolarisWebSearchTool(BaseTool):
+    name: str = "polaris_web_search"
+    description: str = "Search the web with optional Polaris trust scoring. Returns web results with relevance and optional verification."
+    args_schema: Type[BaseModel] = WebSearchInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, query: str, limit: int = None, freshness: str = None, region: str = None, verify: bool = None) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.web_search(query, limit=limit or 5, freshness=freshness, region=region, verify=verify or False)
+        import json
+        return json.dumps(result, indent=2, default=str)
+
+
+class CrawlInput(BaseModel):
+    url: str = Field(description="URL to crawl and extract content from")
+    depth: Optional[int] = Field(default=None, description="Crawl depth (default 1)")
+    max_pages: Optional[int] = Field(default=None, description="Max pages to crawl (default 5)")
+    include_links: Optional[bool] = Field(default=None, description="Include extracted links in response")
+
+
+class PolarisCrawlTool(BaseTool):
+    name: str = "polaris_crawl"
+    description: str = "Extract structured content from a URL with optional link following. Returns page content, metadata, and optionally discovered links."
+    args_schema: Type[BaseModel] = CrawlInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, url: str, depth: int = None, max_pages: int = None, include_links: bool = None) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.crawl(url, depth=depth or 1, max_pages=max_pages or 5, include_links=include_links if include_links is not None else True)
+        import json
+        return json.dumps(result, indent=2, default=str)
+
+
 class TrendingInput(BaseModel):
     limit: Optional[int] = Field(default=None, description="Max number of trending entities to return")
 
@@ -293,6 +421,276 @@ class PolarisTrendingTool(BaseTool):
         for e in entities:
             lines.append("- {} ({}, {} mentions)".format(
                 e.name, e.type or "N/A", e.mention_count or 0))
+        return "\n".join(lines)
+
+
+# ── Trading Tools ──
+
+
+class TickerResolveInput(BaseModel):
+    symbols: str = Field(description="Comma-separated ticker symbols to resolve (e.g. 'AAPL,MSFT,NVDA')")
+
+
+class PolarisTickerResolveTool(BaseTool):
+    name: str = "polaris_ticker_resolve"
+    description: str = "Resolve ticker symbols to canonical entities. Returns matched tickers with entity names, exchanges, asset types, and sectors. Unresolved symbols are listed separately."
+    args_schema: Type[BaseModel] = TickerResolveInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, symbols: str) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.ticker_resolve(symbols)
+        resolved = result.get("resolved", [])
+        unresolved = result.get("unresolved", [])
+        lines = []
+        if resolved:
+            lines.append("Resolved tickers:")
+            for r in resolved:
+                lines.append("- {} → {} ({}, {}, sector: {})".format(
+                    r.get("ticker", "?"),
+                    r.get("entity_name", "?"),
+                    r.get("exchange", "N/A"),
+                    r.get("asset_type", "N/A"),
+                    r.get("sector", "N/A"),
+                ))
+        if unresolved:
+            lines.append("Unresolved: {}".format(", ".join(unresolved)))
+        if not lines:
+            return "No ticker symbols provided."
+        return "\n".join(lines)
+
+
+class TickerInput(BaseModel):
+    symbol: str = Field(description="Ticker symbol to look up (e.g. 'AAPL')")
+
+
+class PolarisTickerTool(BaseTool):
+    name: str = "polaris_ticker"
+    description: str = "Look up a single ticker symbol. Returns entity name, exchange, sector, 24h brief count, sentiment score, and trending status."
+    args_schema: Type[BaseModel] = TickerInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, symbol: str) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.ticker(symbol)
+        if result.get("status") != "ok":
+            return "Ticker '{}' not found.".format(symbol)
+        lines = [
+            "{} — {}".format(result.get("ticker", symbol), result.get("entity_name", "Unknown")),
+            "Exchange: {} | Sector: {} | Type: {}".format(
+                result.get("exchange", "N/A"),
+                result.get("sector", "N/A"),
+                result.get("asset_type", "N/A"),
+            ),
+            "Briefs (24h): {} | Sentiment: {} | Trending: {}".format(
+                result.get("briefs_24h", 0),
+                result.get("sentiment_score", "N/A"),
+                result.get("trending", False),
+            ),
+        ]
+        return "\n".join(lines)
+
+
+class TickerScoreInput(BaseModel):
+    symbol: str = Field(description="Ticker symbol to get composite trading signal for (e.g. 'NVDA')")
+
+
+class PolarisTickerScoreTool(BaseTool):
+    name: str = "polaris_ticker_score"
+    description: str = "Get a composite trading signal score for a ticker. Combines sentiment (40%), momentum (25%), coverage volume (20%), and event proximity (15%) into a single score from -1 to +1 with a signal label (strong_bullish/bullish/neutral/bearish/strong_bearish)."
+    args_schema: Type[BaseModel] = TickerScoreInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, symbol: str) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.ticker_score(symbol)
+        if result.get("status") != "ok":
+            return "Could not compute score for '{}'.".format(symbol)
+        lines = [
+            "{} — {} (score: {})".format(
+                result.get("ticker", symbol),
+                result.get("signal", "N/A"),
+                result.get("composite_score", "N/A"),
+            ),
+            "Entity: {} | Sector: {}".format(
+                result.get("entity_name", "N/A"),
+                result.get("sector", "N/A"),
+            ),
+        ]
+        components = result.get("components", {})
+        sentiment = components.get("sentiment", {})
+        lines.append("Sentiment: 24h={} / 7d avg={} (weight {})".format(
+            sentiment.get("current_24h", "N/A"),
+            sentiment.get("week_avg", "N/A"),
+            sentiment.get("weight", 0.4),
+        ))
+        mom = components.get("momentum", {})
+        lines.append("Momentum: {} ({}, weight {})".format(
+            mom.get("value", "N/A"),
+            mom.get("direction", "N/A"),
+            mom.get("weight", 0.25),
+        ))
+        vol = components.get("volume", {})
+        lines.append("Volume: {} briefs/day this week vs {} last week ({}% change, weight {})".format(
+            vol.get("daily_avg_this_week", "N/A"),
+            vol.get("daily_avg_last_week", "N/A"),
+            vol.get("velocity_change_pct", "N/A"),
+            vol.get("weight", 0.2),
+        ))
+        events = components.get("events", {})
+        lines.append("Events: {} in 7d, latest type: {} (weight {})".format(
+            events.get("count_7d", 0),
+            events.get("latest_type", "none"),
+            events.get("weight", 0.15),
+        ))
+        return "\n".join(lines)
+
+
+class SectorsInput(BaseModel):
+    days: Optional[int] = Field(default=None, description="Lookback period in days (1-90, default 7)")
+
+
+class PolarisSectorsTool(BaseTool):
+    name: str = "polaris_sectors"
+    description: str = "Get a sector-level overview of market sentiment. Returns each sector's ticker count, brief count, average sentiment, top ticker, and bullish/bearish/neutral signal."
+    args_schema: Type[BaseModel] = SectorsInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, days: int = None) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.sectors(days=days or 7)
+        sectors = result.get("sectors", [])
+        if not sectors:
+            return "No sector data available."
+        lines = ["Sector overview ({} day lookback):".format(result.get("days", 7))]
+        for s in sectors:
+            lines.append("- {} [{}] sentiment={} | {} tickers, {} briefs | top: {}".format(
+                s.get("sector", "?"),
+                s.get("signal", "?"),
+                s.get("avg_sentiment", "N/A"),
+                s.get("ticker_count", 0),
+                s.get("brief_count", 0),
+                s.get("top_ticker", "N/A"),
+            ))
+        return "\n".join(lines)
+
+
+class PortfolioFeedInput(BaseModel):
+    holdings: str = Field(description="JSON array of holdings, e.g. '[{\"ticker\":\"NVDA\",\"weight\":0.3},{\"ticker\":\"AAPL\",\"weight\":0.2}]'")
+    days: Optional[int] = Field(default=None, description="Lookback period in days (1-30, default 7)")
+    limit: Optional[int] = Field(default=None, description="Max briefs to return (1-100, default 30)")
+
+
+class PolarisPortfolioFeedTool(BaseTool):
+    name: str = "polaris_portfolio_feed"
+    description: str = "Get ranked intelligence for a portfolio of holdings. Pass ticker/weight pairs and receive briefs scored by portfolio relevance, plus a per-holding summary with brief counts and sentiment."
+    args_schema: Type[BaseModel] = PortfolioFeedInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, holdings: str, days: int = None, limit: int = None) -> str:
+        import json as _json
+        try:
+            holdings_list = _json.loads(holdings)
+        except (_json.JSONDecodeError, TypeError):
+            return "Invalid holdings JSON. Expected format: [{\"ticker\":\"NVDA\",\"weight\":0.3}, ...]"
+        if not isinstance(holdings_list, list) or not holdings_list:
+            return "Holdings must be a non-empty JSON array of {\"ticker\": ..., \"weight\": ...} objects."
+        client = PolarisClient(api_key=self.api_key)
+        result = client.portfolio_feed(holdings_list, days=days or 7, limit=limit or 30)
+        lines = []
+        # Portfolio summary
+        summary = result.get("portfolio_summary", [])
+        if summary:
+            lines.append("Portfolio summary ({} holdings resolved):".format(result.get("holdings_resolved", 0)))
+            for h in summary:
+                lines.append("  {} (weight {}) — {} briefs, sentiment: {}".format(
+                    h.get("ticker", "?"),
+                    h.get("weight", "?"),
+                    h.get("briefs_in_period", 0),
+                    h.get("avg_sentiment", "N/A"),
+                ))
+        unresolved = result.get("holdings_unresolved", [])
+        if unresolved:
+            lines.append("Unresolved: {}".format(", ".join(unresolved)))
+        # Top briefs
+        briefs = result.get("briefs", [])
+        if briefs:
+            lines.append("Top briefs (by portfolio relevance):")
+            for b in briefs[:10]:
+                tickers = ", ".join(b.get("matching_tickers", []))
+                lines.append("- [{}] {} (relevance: {}, tickers: {})".format(
+                    b.get("category", "general"),
+                    b.get("headline", "Untitled"),
+                    b.get("portfolio_relevance", "N/A"),
+                    tickers or "N/A",
+                ))
+        if not lines:
+            return "No portfolio intelligence found."
+        return "\n".join(lines)
+
+
+class EventsCalendarInput(BaseModel):
+    ticker: Optional[str] = Field(default=None, description="Ticker symbol to filter events for (e.g. 'AAPL')")
+    type: Optional[str] = Field(default=None, description="Event type to filter by (e.g. 'earnings', 'product_launch')")
+    days: Optional[int] = Field(default=None, description="Lookback period in days (1-90, default 30)")
+    limit: Optional[int] = Field(default=None, description="Max events to return (1-200, default 50)")
+
+
+class PolarisEventsCalendarTool(BaseTool):
+    name: str = "polaris_events_calendar"
+    description: str = "Get structured market events from intelligence briefs, filterable by ticker and event type. Returns events with brief context, market session, and a summary breakdown by event type."
+    args_schema: Type[BaseModel] = EventsCalendarInput
+    api_key: str = ""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key=api_key, **kwargs)
+
+    def _run(self, ticker: str = None, type: str = None, days: int = None, limit: int = None) -> str:
+        client = PolarisClient(api_key=self.api_key)
+        result = client.events_calendar(
+            days=days or 30,
+            ticker=ticker,
+            type=type,
+            limit=limit or 50,
+        )
+        events = result.get("events", [])
+        event_types = result.get("event_types", [])
+        total = result.get("total_events", 0)
+        lines = ["Events calendar ({} total, {} day lookback{}{}):".format(
+            total,
+            result.get("days", 30),
+            ", ticker={}".format(result.get("ticker")) if result.get("ticker") else "",
+            ", type={}".format(result.get("event_type")) if result.get("event_type") else "",
+        )]
+        if event_types:
+            lines.append("By type: {}".format(
+                ", ".join("{} ({})".format(t.get("type", "?"), t.get("count", 0)) for t in event_types)
+            ))
+        if events:
+            for ev in events[:20]:
+                lines.append("- [{}] {} — {} (brief: {})".format(
+                    ev.get("event_type", "?"),
+                    ev.get("subject", "?"),
+                    ev.get("description", ev.get("brief_headline", "N/A")),
+                    ev.get("brief_id", "N/A"),
+                ))
+        elif total == 0:
+            lines.append("No events found.")
         return "\n".join(lines)
 
 
@@ -461,97 +859,6 @@ class PolarisEconomyTool(BaseTool):
         return "\n".join(lines)
 
 
-class ForexInput(BaseModel):
-    pair: Optional[str] = Field(default=None, description="Forex pair (e.g. EURUSD, GBPJPY). Omit for all major pairs.")
-
-
-class PolarisForexTool(BaseTool):
-    name: str = "polaris_forex"
-    description: str = "Get forex rates. Without a pair, returns all major currency pairs with current rates. With a pair, returns that pair's rate, change, and session data."
-    args_schema: Type[BaseModel] = ForexInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, pair: str = None) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.forex(pair=pair)
-        if pair:
-            lines = ["{} — Forex".format(result.get("pair", pair))]
-            lines.append("Rate: {} | Change: {}%".format(
-                result.get("rate", result.get("price", "N/A")),
-                result.get("change_percent", result.get("changesPercentage", "N/A")),
-            ))
-            if result.get("high"):
-                lines.append("High: {} | Low: {} | Open: {}".format(
-                    result.get("high", "N/A"),
-                    result.get("low", "N/A"),
-                    result.get("open", "N/A"),
-                ))
-        else:
-            pairs = result.get("pairs", result.get("rates", []))
-            if not pairs:
-                return "No forex data available."
-            lines = ["Forex Rates ({} pairs)".format(len(pairs))]
-            for p in pairs:
-                lines.append("  {} = {} ({}%)".format(
-                    p.get("pair", p.get("symbol", "?")),
-                    p.get("rate", p.get("price", "?")),
-                    p.get("change_percent", p.get("changesPercentage", "N/A")),
-                ))
-        return "\n".join(lines)
-
-
-class CommoditiesInput(BaseModel):
-    symbol: Optional[str] = Field(default=None, description="Commodity symbol (e.g. GC for gold, CL for crude oil). Omit for all commodities.")
-
-
-class PolarisCommoditiesTool(BaseTool):
-    name: str = "polaris_commodities"
-    description: str = "Get commodity prices. Without a symbol, returns all tracked commodities with current prices. With a symbol, returns that commodity's price, change, and details."
-    args_schema: Type[BaseModel] = CommoditiesInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, symbol: str = None) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.commodities(symbol=symbol)
-        if symbol:
-            lines = ["{} — {}".format(
-                result.get("symbol", symbol),
-                result.get("name", "Commodity"),
-            )]
-            lines.append("Price: ${} | Change: {}%".format(
-                result.get("price", "N/A"),
-                result.get("change_percent", result.get("changesPercentage", "N/A")),
-            ))
-            if result.get("high"):
-                lines.append("High: ${} | Low: ${} | Open: ${}".format(
-                    result.get("high", "N/A"),
-                    result.get("low", "N/A"),
-                    result.get("open", "N/A"),
-                ))
-        else:
-            commodities = result.get("commodities", result.get("data", []))
-            if not commodities:
-                return "No commodity data available."
-            lines = ["Commodities ({} tracked)".format(len(commodities))]
-            for c in commodities:
-                lines.append("  {} ({}) — ${} ({}%)".format(
-                    c.get("symbol", "?"),
-                    c.get("name", "?"),
-                    c.get("price", "?"),
-                    c.get("change_percent", c.get("changesPercentage", "N/A")),
-                ))
-        return "\n".join(lines)
-
-
-# ── Crypto Tools ──
-
-
 class CryptoInput(BaseModel):
     symbol: Optional[str] = Field(default=None, description="Crypto symbol (e.g. BTC, ETH, SOL). Omit for market overview.")
 
@@ -658,6 +965,7 @@ class PolarisCorrelationTool(BaseTool):
         lines = ["Correlation Matrix ({} day lookback):".format(result.get("period_days", days or 30))]
         matrix = result.get("matrix", [])
         result_tickers = result.get("tickers", ticker_list)
+        # Header row
         lines.append("       " + "  ".join("{:>6}".format(t) for t in result_tickers))
         for i, row in enumerate(matrix):
             label = "{:<6}".format(result_tickers[i] if i < len(result_tickers) else "?")
@@ -799,295 +1107,50 @@ class PolarisDefiTool(BaseTool):
         return "\n".join(lines)
 
 
-# ── Social Tools ──
-
-
-class SocialSentimentInput(BaseModel):
-    symbol: str = Field(description="Ticker symbol to get social sentiment for (e.g. 'NVDA')")
-
-
-class PolarisSocialSentimentTool(BaseTool):
-    name: str = "polaris_social_sentiment"
-    description: str = "Get social media sentiment for a ticker symbol. Returns sentiment scores, volume, and trending metrics from social platforms."
-    args_schema: Type[BaseModel] = SocialSentimentInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, symbol: str) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.social_sentiment(symbol)
-        import json
-        return json.dumps(result, indent=2, default=str)
-
-
-class SocialTrendingInput(BaseModel):
-    pass
-
-
-class PolarisSocialTrendingTool(BaseTool):
-    name: str = "polaris_social_trending"
-    description: str = "Get trending tickers on social media. Returns the most discussed and fastest-rising tickers across social platforms."
-    args_schema: Type[BaseModel] = SocialTrendingInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.social_trending()
-        import json
-        return json.dumps(result, indent=2, default=str)
-
-
-# ── IPO Calendar Tool ──
-
-
-class IPOCalendarInput(BaseModel):
-    status: Optional[str] = Field(default=None, description="Filter by IPO status (e.g. upcoming, filed, priced)")
-
-
-class PolarisIPOCalendarTool(BaseTool):
-    name: str = "polaris_ipo_calendar"
-    description: str = "Get upcoming IPOs. Returns the IPO calendar with company names, expected dates, price ranges, and status. Optionally filter by status."
-    args_schema: Type[BaseModel] = IPOCalendarInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, status: str = None) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.ipo_calendar(status=status)
-        import json
-        return json.dumps(result, indent=2, default=str)
-
-
-# ── Ticker News & Analysis Tools ──
-
-
-class TickerNewsInput(BaseModel):
-    symbol: str = Field(description="Ticker symbol to get news for (e.g. 'AAPL')")
-    limit: Optional[int] = Field(default=None, description="Max number of news briefs to return (default 10)")
-
-
-class PolarisTickerNewsTool(BaseTool):
-    name: str = "polaris_ticker_news"
-    description: str = "Get recent news briefs for a specific ticker symbol. Returns headlines, summaries, sentiment, and publication dates."
-    args_schema: Type[BaseModel] = TickerNewsInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, symbol: str, limit: int = None) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.ticker_news(symbol, limit=limit or 10)
-        import json
-        return json.dumps(result, indent=2, default=str)
-
-
-class TickerAnalysisInput(BaseModel):
-    symbol: str = Field(description="Ticker symbol to get analysis for (e.g. 'TSLA')")
-
-
-class PolarisTickerAnalysisTool(BaseTool):
-    name: str = "polaris_ticker_analysis"
-    description: str = "Get full analysis for a ticker symbol. Returns comprehensive coverage including sentiment, price data, technicals, and news summary."
-    args_schema: Type[BaseModel] = TickerAnalysisInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, symbol: str) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.ticker_analysis(symbol)
-        import json
-        return json.dumps(result, indent=2, default=str)
-
-
-# ── Search Suggest Tool ──
-
-
-class SearchSuggestInput(BaseModel):
-    q: str = Field(description="Partial query string for autocomplete suggestions")
-
-
-class PolarisSearchSuggestTool(BaseTool):
-    name: str = "polaris_search_suggest"
-    description: str = "Get search autocomplete suggestions. Returns matching topics, entities, and tickers as the user types a query."
-    args_schema: Type[BaseModel] = SearchSuggestInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, q: str) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.search_suggest(q)
-        import json
-        return json.dumps(result, indent=2, default=str)
-
-
-# ── DeFi Protocol Tool ──
-
-
-class DefiProtocolInput(BaseModel):
-    protocol: str = Field(description="DeFi protocol slug (e.g. aave, uniswap, lido)")
-
-
-class PolarisDefiProtocolTool(BaseTool):
-    name: str = "polaris_defi_protocol"
-    description: str = "Get detailed data for a specific DeFi protocol. Returns TVL, chain, category, and historical TVL data."
-    args_schema: Type[BaseModel] = DefiProtocolInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, protocol: str) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.defi_protocol(protocol)
-        lines = ["{} — DeFi Protocol".format(result.get("name", protocol))]
-        lines.append("TVL: ${} | Chain: {}".format(
-            result.get("tvl", "N/A"),
-            result.get("chain", result.get("chains", "N/A")),
-        ))
-        if result.get("category"):
-            lines.append("Category: {}".format(result.get("category")))
-        history = result.get("tvl_history", [])
-        if history:
-            lines.append("Recent TVL history:")
-            for h in history[-5:]:
-                lines.append("  {} = ${}".format(h.get("date", "?"), h.get("tvl", "?")))
-        return "\n".join(lines)
-
-
-# ── Economy Indicator Tool ──
-
-
-class EconomyIndicatorInput(BaseModel):
-    indicator: str = Field(description="Economic indicator slug (e.g. gdp, cpi, unemployment, fed_funds)")
-
-
-class PolarisEconomyIndicatorTool(BaseTool):
-    name: str = "polaris_economy_indicator"
-    description: str = "Get data for a specific economic indicator. Returns the indicator name, latest value, units, frequency, and historical observations."
-    args_schema: Type[BaseModel] = EconomyIndicatorInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, indicator: str) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.economy_indicator(indicator)
-        lines = ["{} ({})".format(result.get("name", indicator), result.get("indicator", indicator))]
-        latest = result.get("latest", {})
-        if latest:
-            lines.append("Latest: {} ({}) | Units: {} | Frequency: {}".format(
-                latest.get("value", "N/A"),
-                latest.get("date", "N/A"),
-                result.get("units", "N/A"),
-                result.get("frequency", "N/A"),
-            ))
-        observations = result.get("observations", [])
-        if observations:
-            lines.append("Recent observations:")
-            for obs in observations[:10]:
-                lines.append("  {} = {}".format(obs.get("date", "?"), obs.get("value", "?")))
-        return "\n".join(lines)
-
-
-# ── Report Tools ──
-
-
-class GenerateReportInput(BaseModel):
-    ticker: str = Field(description="Ticker symbol to generate a report for (e.g. 'AAPL', 'BTC')")
-    tier: Optional[str] = Field(default=None, description="Report tier — 'quick' for a fast summary or 'deep' for full analysis (default 'quick')")
-
-
-class PolarisGenerateReportTool(BaseTool):
-    name: str = "polaris_generate_report"
-    description: str = "Generate an AI-powered research report for a ticker symbol. Returns a comprehensive analysis including fundamentals, technicals, and news sentiment."
-    args_schema: Type[BaseModel] = GenerateReportInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, ticker: str, tier: str = None) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.generate_report(ticker, tier=tier or 'quick')
-        import json
-        return json.dumps(result, indent=2, default=str)
-
-
-class GetReportInput(BaseModel):
-    report_id: str = Field(description="The report ID to retrieve")
-
-
-class PolarisGetReportTool(BaseTool):
-    name: str = "polaris_get_report"
-    description: str = "Retrieve a previously generated report by its ID. Returns the full report content including all analysis sections."
-    args_schema: Type[BaseModel] = GetReportInput
-    api_key: str = ""
-
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key=api_key, **kwargs)
-
-    def _run(self, report_id: str) -> str:
-        client = PolarisClient(api_key=self.api_key)
-        result = client.get_report(report_id)
-        import json
-        return json.dumps(result, indent=2, default=str)
-
-
-# ── Ask Tool ──
+# ── New Tools (2026-03-25) ──
 
 
 class AskInput(BaseModel):
-    question: str = Field(description="Natural language question about markets, finance, or any topic covered by Polaris intelligence")
-    context: Optional[str] = Field(default=None, description="Optional context or ticker symbol to focus the answer")
+    question: str = Field(description="Any financial question in natural language (e.g. 'What happened to NVDA today?', 'Compare AAPL and MSFT earnings')")
 
 
 class PolarisAskTool(BaseTool):
     name: str = "polaris_ask"
-    description: str = "Ask any natural language question and get an AI-powered answer grounded in verified intelligence. The most versatile tool — handles market questions, ticker lookups, comparisons, and general research."
+    description: str = "Ask any financial question in natural language. Returns structured data + markdown summary."
     args_schema: Type[BaseModel] = AskInput
     api_key: str = ""
 
     def __init__(self, api_key: str, **kwargs):
         super().__init__(api_key=api_key, **kwargs)
 
-    def _run(self, question: str, context: str = None) -> str:
-        import json
-        payload = {"question": question}
-        if context:
-            payload["context"] = context
+    def _run(self, question: str) -> str:
+        import requests
         resp = requests.post(
-            "{}/api/v1/ask".format(BASE_URL),
-            json=payload,
-            headers={"X-API-Key": self.api_key},
-            timeout=60,
+            "https://api.thepolarisreport.com/api/v1/ask",
+            headers={"Authorization": "Bearer {}".format(self.api_key)},
+            json={"question": question},
         )
-        resp.raise_for_status()
-        return json.dumps(resp.json(), indent=2, default=str)
-
-
-# ── Full Ticker Profile Tool ──
+        data = resp.json()
+        if resp.status_code != 200:
+            return "Error: {}".format(data.get("error", resp.status_code))
+        lines = []
+        if data.get("summary"):
+            lines.append(data["summary"])
+        if data.get("data"):
+            import json
+            lines.append("\nStructured data:\n{}".format(json.dumps(data["data"], indent=2, default=str)))
+        if data.get("sources"):
+            lines.append("\nSources: {}".format(", ".join(str(s) for s in data["sources"][:5])))
+        return "\n".join(lines) if lines else "No answer returned."
 
 
 class FullInput(BaseModel):
-    symbol: str = Field(description="Ticker symbol (e.g. 'AAPL', 'BTC', 'GC')")
+    symbol: str = Field(description="Ticker symbol (e.g. 'AAPL', 'NVDA', 'BTC')")
 
 
 class PolarisFullTool(BaseTool):
     name: str = "polaris_full"
-    description: str = "Get a complete ticker profile — price, fundamentals, technicals, news sentiment, and metadata in a single call."
+    description: str = "Get complete cross-reference for a ticker: price, technicals, earnings, sentiment, news, insider, filings, analysts, institutions — all in one call."
     args_schema: Type[BaseModel] = FullInput
     api_key: str = ""
 
@@ -1095,26 +1158,73 @@ class PolarisFullTool(BaseTool):
         super().__init__(api_key=api_key, **kwargs)
 
     def _run(self, symbol: str) -> str:
+        import requests
         import json
         resp = requests.get(
-            "{}/api/v1/ticker/{}/full".format(BASE_URL, symbol.upper()),
-            headers={"X-API-Key": self.api_key},
-            timeout=30,
+            "https://api.thepolarisreport.com/api/v1/ticker/{}/full".format(symbol),
+            headers={"Authorization": "Bearer {}".format(self.api_key)},
         )
-        resp.raise_for_status()
-        return json.dumps(resp.json(), indent=2, default=str)
-
-
-# ── Insider Trades Tool ──
+        data = resp.json()
+        if resp.status_code != 200:
+            return "Error: {}".format(data.get("error", resp.status_code))
+        lines = ["{} — Full Cross-Reference".format(symbol.upper())]
+        # Price
+        price = data.get("price", {})
+        if price:
+            lines.append("Price: ${} | Change: {}%".format(
+                price.get("close", price.get("price", "N/A")),
+                price.get("change_percent", "N/A"),
+            ))
+        # Technicals summary
+        technicals = data.get("technicals", {})
+        summary = technicals.get("summary", {})
+        if summary:
+            lines.append("Technicals: {} (buy: {}, sell: {}, neutral: {})".format(
+                summary.get("signal", "N/A"),
+                summary.get("buy_count", 0),
+                summary.get("sell_count", 0),
+                summary.get("neutral_count", 0),
+            ))
+        # Earnings
+        earnings = data.get("earnings", {})
+        if earnings:
+            lines.append("Earnings: EPS={} Revenue={}".format(
+                earnings.get("eps", "N/A"),
+                earnings.get("revenue", "N/A"),
+            ))
+        # Sentiment
+        sentiment = data.get("sentiment", {})
+        if sentiment:
+            lines.append("Sentiment: {}".format(sentiment.get("score", sentiment.get("overall", "N/A"))))
+        # Analysts
+        analysts = data.get("analysts", {})
+        if analysts:
+            lines.append("Analysts: {} target=${} (buy: {}, hold: {}, sell: {})".format(
+                analysts.get("consensus", "N/A"),
+                analysts.get("target_price", analysts.get("price_target", "N/A")),
+                analysts.get("buy", 0),
+                analysts.get("hold", 0),
+                analysts.get("sell", 0),
+            ))
+        # Sections summary
+        for section in ["insider", "filings", "institutions", "news"]:
+            sec_data = data.get(section)
+            if sec_data:
+                if isinstance(sec_data, list):
+                    lines.append("{}: {} items".format(section.capitalize(), len(sec_data)))
+                elif isinstance(sec_data, dict):
+                    count = sec_data.get("total", sec_data.get("count", len(sec_data)))
+                    lines.append("{}: {} items".format(section.capitalize(), count))
+        return "\n".join(lines)
 
 
 class InsiderInput(BaseModel):
-    symbol: str = Field(description="Ticker symbol to get insider trades for (e.g. 'AAPL')")
+    symbol: str = Field(description="Ticker symbol (e.g. 'AAPL')")
 
 
 class PolarisInsiderTool(BaseTool):
     name: str = "polaris_insider"
-    description: str = "Get recent insider trading activity for a ticker. Returns buy/sell transactions by company officers and directors with dates, amounts, and ownership changes."
+    description: str = "Get insider transactions (Form 4) for a ticker."
     args_schema: Type[BaseModel] = InsiderInput
     api_key: str = ""
 
@@ -1122,26 +1232,40 @@ class PolarisInsiderTool(BaseTool):
         super().__init__(api_key=api_key, **kwargs)
 
     def _run(self, symbol: str) -> str:
+        import requests
         import json
         resp = requests.get(
-            "{}/api/v1/ticker/{}/insider".format(BASE_URL, symbol.upper()),
-            headers={"X-API-Key": self.api_key},
-            timeout=30,
+            "https://api.thepolarisreport.com/api/v1/ticker/{}/insider".format(symbol),
+            headers={"Authorization": "Bearer {}".format(self.api_key)},
         )
-        resp.raise_for_status()
-        return json.dumps(resp.json(), indent=2, default=str)
-
-
-# ── SEC Filings Tool ──
+        data = resp.json()
+        if resp.status_code != 200:
+            return "Error: {}".format(data.get("error", resp.status_code))
+        transactions = data.get("transactions", data.get("data", []))
+        if not transactions:
+            return "No insider transactions found for '{}'.".format(symbol)
+        lines = ["{} — Insider Transactions".format(symbol.upper())]
+        for tx in transactions[:15]:
+            lines.append("- {} {} {} shares @ ${} ({})".format(
+                tx.get("insider_name", tx.get("name", "Unknown")),
+                tx.get("transaction_type", tx.get("type", "?")),
+                tx.get("shares", tx.get("amount", "?")),
+                tx.get("price", "?"),
+                tx.get("date", tx.get("filing_date", "?")),
+            ))
+        total = data.get("total", len(transactions))
+        if total > 15:
+            lines.append("... and {} more transactions".format(total - 15))
+        return "\n".join(lines)
 
 
 class FilingsInput(BaseModel):
-    symbol: str = Field(description="Ticker symbol to get SEC filings for (e.g. 'TSLA')")
+    symbol: str = Field(description="Ticker symbol (e.g. 'AAPL')")
 
 
 class PolarisFilingsTool(BaseTool):
     name: str = "polaris_filings"
-    description: str = "Get recent SEC filings for a ticker. Returns 10-K, 10-Q, 8-K, and other filings with dates, types, and links."
+    description: str = "Get SEC filings (10-K, 10-Q, 8-K) for a ticker."
     args_schema: Type[BaseModel] = FilingsInput
     api_key: str = ""
 
@@ -1149,26 +1273,39 @@ class PolarisFilingsTool(BaseTool):
         super().__init__(api_key=api_key, **kwargs)
 
     def _run(self, symbol: str) -> str:
-        import json
+        import requests
         resp = requests.get(
-            "{}/api/v1/ticker/{}/filings".format(BASE_URL, symbol.upper()),
-            headers={"X-API-Key": self.api_key},
-            timeout=30,
+            "https://api.thepolarisreport.com/api/v1/ticker/{}/filings".format(symbol),
+            headers={"Authorization": "Bearer {}".format(self.api_key)},
         )
-        resp.raise_for_status()
-        return json.dumps(resp.json(), indent=2, default=str)
-
-
-# ── Analyst Ratings Tool ──
+        data = resp.json()
+        if resp.status_code != 200:
+            return "Error: {}".format(data.get("error", resp.status_code))
+        filings = data.get("filings", data.get("data", []))
+        if not filings:
+            return "No SEC filings found for '{}'.".format(symbol)
+        lines = ["{} — SEC Filings".format(symbol.upper())]
+        for f in filings[:15]:
+            lines.append("- [{}] {} ({})".format(
+                f.get("type", f.get("form_type", "?")),
+                f.get("title", f.get("description", "N/A")),
+                f.get("date", f.get("filed_date", "?")),
+            ))
+            if f.get("url"):
+                lines.append("  {}".format(f["url"]))
+        total = data.get("total", len(filings))
+        if total > 15:
+            lines.append("... and {} more filings".format(total - 15))
+        return "\n".join(lines)
 
 
 class AnalystsInput(BaseModel):
-    symbol: str = Field(description="Ticker symbol to get analyst ratings for (e.g. 'NVDA')")
+    symbol: str = Field(description="Ticker symbol (e.g. 'AAPL')")
 
 
 class PolarisAnalystsTool(BaseTool):
     name: str = "polaris_analysts"
-    description: str = "Get analyst ratings and price targets for a ticker. Returns consensus rating, target prices, and individual analyst recommendations."
+    description: str = "Get analyst ratings and price target consensus."
     args_schema: Type[BaseModel] = AnalystsInput
     api_key: str = ""
 
@@ -1176,60 +1313,100 @@ class PolarisAnalystsTool(BaseTool):
         super().__init__(api_key=api_key, **kwargs)
 
     def _run(self, symbol: str) -> str:
-        import json
+        import requests
         resp = requests.get(
-            "{}/api/v1/ticker/{}/analysts".format(BASE_URL, symbol.upper()),
-            headers={"X-API-Key": self.api_key},
-            timeout=30,
+            "https://api.thepolarisreport.com/api/v1/ticker/{}/analysts".format(symbol),
+            headers={"Authorization": "Bearer {}".format(self.api_key)},
         )
-        resp.raise_for_status()
-        return json.dumps(resp.json(), indent=2, default=str)
-
-
-# ── Congress Trades Tool ──
+        data = resp.json()
+        if resp.status_code != 200:
+            return "Error: {}".format(data.get("error", resp.status_code))
+        lines = ["{} — Analyst Ratings".format(symbol.upper())]
+        consensus = data.get("consensus", data.get("rating", "N/A"))
+        target = data.get("target_price", data.get("price_target", "N/A"))
+        lines.append("Consensus: {} | Price Target: ${}".format(consensus, target))
+        if data.get("target_high") or data.get("target_low"):
+            lines.append("Target Range: ${} — ${}".format(
+                data.get("target_low", "N/A"),
+                data.get("target_high", "N/A"),
+            ))
+        # Rating breakdown
+        for key in ["strong_buy", "buy", "hold", "sell", "strong_sell"]:
+            val = data.get(key)
+            if val is not None:
+                lines.append("  {}: {}".format(key.replace("_", " ").title(), val))
+        # Recent ratings
+        ratings = data.get("ratings", data.get("recent", []))
+        if ratings:
+            lines.append("\nRecent ratings:")
+            for r in ratings[:10]:
+                lines.append("- {} — {} (target: ${}) {}".format(
+                    r.get("analyst", r.get("firm", "?")),
+                    r.get("rating", r.get("action", "?")),
+                    r.get("target_price", r.get("price_target", "?")),
+                    r.get("date", ""),
+                ))
+        return "\n".join(lines)
 
 
 class CongressInput(BaseModel):
-    symbol: Optional[str] = Field(default=None, description="Filter by ticker symbol (e.g. 'AAPL'). Omit for all recent trades.")
-    chamber: Optional[str] = Field(default=None, description="Filter by chamber: 'senate' or 'house'. Omit for both.")
+    symbol: Optional[str] = Field(default=None, description="Ticker symbol to filter by (e.g. 'AAPL'). Omit for all trades.")
+    chamber: Optional[str] = Field(default=None, description="Filter by chamber: 'senate' or 'house'")
+    limit: Optional[int] = Field(default=None, description="Max results to return (default 20)")
 
 
 class PolarisCongressTool(BaseTool):
     name: str = "polaris_congress"
-    description: str = "Get recent stock trades by members of the US Congress. Returns transaction details including member name, ticker, trade type, amount, and disclosure date."
+    description: str = "Get congressional stock trades (STOCK Act disclosures)."
     args_schema: Type[BaseModel] = CongressInput
     api_key: str = ""
 
     def __init__(self, api_key: str, **kwargs):
         super().__init__(api_key=api_key, **kwargs)
 
-    def _run(self, symbol: str = None, chamber: str = None) -> str:
-        import json
+    def _run(self, symbol: str = None, chamber: str = None, limit: int = None) -> str:
+        import requests
         params = {}
         if symbol:
-            params["symbol"] = symbol.upper()
+            params["symbol"] = symbol
         if chamber:
             params["chamber"] = chamber
+        if limit:
+            params["limit"] = limit
         resp = requests.get(
-            "{}/api/v1/congress/trades".format(BASE_URL),
+            "https://api.thepolarisreport.com/api/v1/congress/trades",
+            headers={"Authorization": "Bearer {}".format(self.api_key)},
             params=params,
-            headers={"X-API-Key": self.api_key},
-            timeout=30,
         )
-        resp.raise_for_status()
-        return json.dumps(resp.json(), indent=2, default=str)
-
-
-# ── Institutional Ownership Tool ──
+        data = resp.json()
+        if resp.status_code != 200:
+            return "Error: {}".format(data.get("error", resp.status_code))
+        trades = data.get("trades", data.get("data", []))
+        if not trades:
+            return "No congressional trades found."
+        lines = ["Congressional Stock Trades"]
+        for t in trades[:20]:
+            lines.append("- {} ({}) {} {} — ${} ({})".format(
+                t.get("representative", t.get("member", "?")),
+                t.get("party", "?"),
+                t.get("type", t.get("transaction_type", "?")),
+                t.get("ticker", t.get("symbol", "?")),
+                t.get("amount", t.get("value", "?")),
+                t.get("date", t.get("transaction_date", "?")),
+            ))
+        total = data.get("total", len(trades))
+        if total > 20:
+            lines.append("... and {} more trades".format(total - 20))
+        return "\n".join(lines)
 
 
 class InstitutionsInput(BaseModel):
-    symbol: str = Field(description="Ticker symbol to get institutional ownership for (e.g. 'MSFT')")
+    symbol: str = Field(description="Ticker symbol (e.g. 'AAPL')")
 
 
 class PolarisInstitutionsTool(BaseTool):
     name: str = "polaris_institutions"
-    description: str = "Get institutional ownership data for a ticker. Returns top institutional holders, shares held, percentage of outstanding shares, and recent changes."
+    description: str = "Get institutional holders (13F) for a ticker."
     args_schema: Type[BaseModel] = InstitutionsInput
     api_key: str = ""
 
@@ -1237,40 +1414,76 @@ class PolarisInstitutionsTool(BaseTool):
         super().__init__(api_key=api_key, **kwargs)
 
     def _run(self, symbol: str) -> str:
-        import json
+        import requests
         resp = requests.get(
-            "{}/api/v1/ticker/{}/institutions".format(BASE_URL, symbol.upper()),
-            headers={"X-API-Key": self.api_key},
-            timeout=30,
+            "https://api.thepolarisreport.com/api/v1/ticker/{}/institutions".format(symbol),
+            headers={"Authorization": "Bearer {}".format(self.api_key)},
         )
-        resp.raise_for_status()
-        return json.dumps(resp.json(), indent=2, default=str)
-
-
-# ── Run Agent Tool ──
+        data = resp.json()
+        if resp.status_code != 200:
+            return "Error: {}".format(data.get("error", resp.status_code))
+        holders = data.get("holders", data.get("institutions", data.get("data", [])))
+        if not holders:
+            return "No institutional holder data found for '{}'.".format(symbol)
+        lines = ["{} — Institutional Holders (13F)".format(symbol.upper())]
+        for h in holders[:15]:
+            lines.append("- {} — {} shares ({}%) valued at ${}".format(
+                h.get("holder", h.get("institution", h.get("name", "?"))),
+                h.get("shares", h.get("position", "?")),
+                h.get("weight", h.get("percent", "?")),
+                h.get("value", "?"),
+            ))
+            if h.get("change"):
+                lines.append("  Change: {} shares".format(h["change"]))
+        total = data.get("total", len(holders))
+        if total > 15:
+            lines.append("... and {} more holders".format(total - 15))
+        return "\n".join(lines)
 
 
 class RunAgentInput(BaseModel):
-    slug: str = Field(description="Agent slug identifier (e.g. 'market-analyst', 'risk-assessor')")
-    input: str = Field(description="Input prompt or question for the agent to process")
+    slug: str = Field(description="Agent slug identifier (e.g. 'sector-analyst', 'earnings-reviewer')")
+    params: Optional[str] = Field(default=None, description="JSON object of agent parameters (e.g. '{\"ticker\": \"AAPL\", \"depth\": \"deep\"}')")
 
 
 class PolarisRunAgentTool(BaseTool):
     name: str = "polaris_run_agent"
-    description: str = "Run a Polaris AI agent by slug. Agents are specialized workflows for tasks like market analysis, risk assessment, and research synthesis. Returns the agent's structured output."
+    description: str = "Run a marketplace agent and get formatted results."
     args_schema: Type[BaseModel] = RunAgentInput
     api_key: str = ""
 
     def __init__(self, api_key: str, **kwargs):
         super().__init__(api_key=api_key, **kwargs)
 
-    def _run(self, slug: str, input: str) -> str:
-        import json
+    def _run(self, slug: str, params: str = None) -> str:
+        import requests
+        import json as _json
+        body = {}
+        if params:
+            try:
+                body = _json.loads(params)
+            except (_json.JSONDecodeError, TypeError):
+                return "Invalid params JSON. Expected a JSON object."
         resp = requests.post(
-            "{}/api/v1/agents/run/{}".format(BASE_URL, slug),
-            json={"input": input},
-            headers={"X-API-Key": self.api_key},
-            timeout=120,
+            "https://api.thepolarisreport.com/api/v1/agents/run/{}".format(slug),
+            headers={"Authorization": "Bearer {}".format(self.api_key)},
+            json=body,
         )
-        resp.raise_for_status()
-        return json.dumps(resp.json(), indent=2, default=str)
+        data = resp.json()
+        if resp.status_code != 200:
+            return "Error: {}".format(data.get("error", resp.status_code))
+        lines = ["Agent '{}' Results".format(slug)]
+        if data.get("output"):
+            lines.append(str(data["output"])[:2000])
+        elif data.get("result"):
+            if isinstance(data["result"], str):
+                lines.append(data["result"][:2000])
+            else:
+                lines.append(_json.dumps(data["result"], indent=2, default=str)[:2000])
+        elif data.get("markdown"):
+            lines.append(data["markdown"][:2000])
+        else:
+            lines.append(_json.dumps(data, indent=2, default=str)[:2000])
+        if data.get("credits_used"):
+            lines.append("\nCredits used: {}".format(data["credits_used"]))
+        return "\n".join(lines)

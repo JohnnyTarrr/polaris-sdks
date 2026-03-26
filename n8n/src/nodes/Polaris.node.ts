@@ -39,7 +39,10 @@ export class Polaris implements INodeType {
           { name: 'Crypto', value: 'crypto' },
           { name: 'Intelligence', value: 'intelligence' },
           { name: 'Market Data', value: 'marketData' },
+          { name: 'Reports', value: 'reports' },
           { name: 'Search', value: 'search' },
+          { name: 'Social', value: 'social' },
+          { name: 'Ticker', value: 'ticker' },
           { name: 'Web', value: 'web' },
         ],
         default: 'briefs',
@@ -69,7 +72,7 @@ export class Polaris implements INodeType {
         displayOptions: { show: { resource: ['search'] } },
         options: [
           { name: 'Search', value: 'search', description: 'Search briefs by keyword' },
-          { name: 'Suggest', value: 'suggest', description: 'Get search suggestions' },
+          { name: 'Search Suggest', value: 'searchSuggest', description: 'Get search autocomplete suggestions' },
           { name: 'Web Search', value: 'webSearch', description: 'Search the web' },
         ],
         default: 'search',
@@ -88,6 +91,20 @@ export class Polaris implements INodeType {
           { name: 'Context', value: 'context', description: 'Get contextual analysis' },
         ],
         default: 'verify',
+      },
+
+      // ------ Reports operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['reports'] } },
+        options: [
+          { name: 'Generate Report', value: 'generateReport', description: 'Generate a new report for a ticker' },
+          { name: 'Get Report', value: 'getReport', description: 'Get a report by ID' },
+        ],
+        default: 'generateReport',
       },
 
       // ------ Web operations ------
@@ -115,8 +132,9 @@ export class Polaris implements INodeType {
           { name: 'Candles', value: 'candles', description: 'Get OHLCV candlestick data for a ticker' },
           { name: 'Commodities', value: 'commodities', description: 'Get commodities data' },
           { name: 'Earnings', value: 'earnings', description: 'Get earnings data for a ticker' },
-          { name: 'Economy', value: 'economy', description: 'Get economic indicator data' },
+          { name: 'Economy Indicator', value: 'economyIndicator', description: 'Get economic indicator data' },
           { name: 'Forex', value: 'forex', description: 'Get foreign exchange rates' },
+          { name: 'IPO Calendar', value: 'ipoCalendar', description: 'Get upcoming IPOs' },
           { name: 'Market Movers', value: 'marketMovers', description: 'Get top market movers (gainers, losers, active)' },
           { name: 'Market Summary', value: 'marketSummary', description: 'Get overall market summary and indices' },
           { name: 'Technicals', value: 'technicals', description: 'Get technical analysis indicators for a ticker' },
@@ -133,11 +151,39 @@ export class Polaris implements INodeType {
         displayOptions: { show: { resource: ['crypto'] } },
         options: [
           { name: 'Chart', value: 'cryptoChart', description: 'Get price chart data for a cryptocurrency' },
-          { name: 'DeFi', value: 'defi', description: 'Get DeFi protocol data' },
+          { name: 'DeFi Protocol', value: 'defiProtocol', description: 'Get DeFi protocol data' },
           { name: 'Get Crypto', value: 'crypto', description: 'Get cryptocurrency data' },
           { name: 'Top Cryptos', value: 'cryptoTop', description: 'Get top cryptocurrencies by market cap' },
         ],
         default: 'crypto',
+      },
+
+      // ------ Social operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['social'] } },
+        options: [
+          { name: 'Social Sentiment', value: 'socialSentiment', description: 'Get social media sentiment for a ticker' },
+          { name: 'Social Trending', value: 'socialTrending', description: 'Get trending tickers on social media' },
+        ],
+        default: 'socialSentiment',
+      },
+
+      // ------ Ticker operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['ticker'] } },
+        options: [
+          { name: 'Ticker Analysis', value: 'tickerAnalysis', description: 'Get full analysis for a ticker' },
+          { name: 'Ticker News', value: 'tickerNews', description: 'Get recent news for a ticker' },
+        ],
+        default: 'tickerNews',
       },
 
       // ------ Input fields ------
@@ -162,7 +208,7 @@ export class Polaris implements INodeType {
         required: true,
         displayOptions: {
           show: {
-            operation: ['search', 'suggest', 'webSearch', 'getTimeline'],
+            operation: ['search', 'searchSuggest', 'webSearch', 'getTimeline'],
           },
         },
         description: 'Search query or topic',
@@ -322,7 +368,7 @@ export class Polaris implements INodeType {
         name: 'indicator',
         type: 'string',
         default: '',
-        displayOptions: { show: { resource: ['marketData'], operation: ['economy'] } },
+        displayOptions: { show: { resource: ['marketData'], operation: ['economyIndicator'] } },
         description: 'Economic indicator name (e.g. gdp, cpi, unemployment). Leave empty to get all indicators.',
       },
 
@@ -359,8 +405,78 @@ export class Polaris implements INodeType {
         name: 'protocol',
         type: 'string',
         default: '',
-        displayOptions: { show: { resource: ['crypto'], operation: ['defi'] } },
+        displayOptions: { show: { resource: ['crypto'], operation: ['defiProtocol'] } },
         description: 'DeFi protocol name (e.g. aave, uniswap). Leave empty to get all protocols.',
+      },
+
+      // ------ Social input fields ------
+
+      // Symbol (for socialSentiment)
+      {
+        displayName: 'Symbol',
+        name: 'socialSymbol',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: { show: { resource: ['social'], operation: ['socialSentiment'] } },
+        description: 'Ticker symbol (e.g. AAPL, TSLA, BTC)',
+      },
+
+      // ------ Ticker input fields ------
+
+      // Symbol (for tickerNews, tickerAnalysis)
+      {
+        displayName: 'Symbol',
+        name: 'tickerSymbol',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: {
+          show: {
+            resource: ['ticker'],
+            operation: ['tickerNews', 'tickerAnalysis'],
+          },
+        },
+        description: 'Ticker symbol (e.g. AAPL, MSFT, NVDA)',
+      },
+
+      // ------ Reports input fields ------
+
+      // Ticker (for generateReport)
+      {
+        displayName: 'Ticker',
+        name: 'reportTicker',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: { show: { resource: ['reports'], operation: ['generateReport'] } },
+        description: 'Ticker symbol to generate report for (e.g. AAPL, MSFT)',
+      },
+
+      // Tier (for generateReport)
+      {
+        displayName: 'Tier',
+        name: 'reportTier',
+        type: 'options',
+        options: [
+          { name: 'Quick', value: 'quick' },
+          { name: 'Full', value: 'full' },
+          { name: 'Deep', value: 'deep' },
+        ],
+        default: 'quick',
+        displayOptions: { show: { resource: ['reports'], operation: ['generateReport'] } },
+        description: 'Report depth tier',
+      },
+
+      // Report ID (for getReport)
+      {
+        displayName: 'Report ID',
+        name: 'reportId',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: { show: { resource: ['reports'], operation: ['getReport'] } },
+        description: 'The ID of the report to retrieve',
       },
     ],
   };
@@ -424,7 +540,7 @@ export class Polaris implements INodeType {
             headers,
             qs,
           });
-        } else if (operation === 'suggest') {
+        } else if (operation === 'searchSuggest') {
           response = await this.helpers.httpRequest({
             method: 'GET',
             url: `${BASE_URL}/api/v1/search/suggest`,
@@ -552,7 +668,7 @@ export class Polaris implements INodeType {
             url,
             headers,
           });
-        } else if (operation === 'economy') {
+        } else if (operation === 'economyIndicator') {
           const indicator = this.getNodeParameter('indicator', i, '') as string;
           const url = indicator
             ? `${BASE_URL}/api/v1/economy/${encodeURIComponent(indicator)}`
@@ -560,6 +676,12 @@ export class Polaris implements INodeType {
           response = await this.helpers.httpRequest({
             method: 'GET',
             url,
+            headers,
+          });
+        } else if (operation === 'ipoCalendar') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/ipo/calendar`,
             headers,
           });
         }
@@ -594,7 +716,7 @@ export class Polaris implements INodeType {
             headers,
             qs: { days },
           });
-        } else if (operation === 'defi') {
+        } else if (operation === 'defiProtocol') {
           const protocol = this.getNodeParameter('protocol', i, '') as string;
           const url = protocol
             ? `${BASE_URL}/api/v1/crypto/defi/${encodeURIComponent(protocol)}`
@@ -602,6 +724,63 @@ export class Polaris implements INodeType {
           response = await this.helpers.httpRequest({
             method: 'GET',
             url,
+            headers,
+          });
+        }
+      }
+
+      // --- Social ---
+      if (resource === 'social') {
+        if (operation === 'socialSentiment') {
+          const socialSymbol = this.getNodeParameter('socialSymbol', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/ticker/${encodeURIComponent(socialSymbol)}/social`,
+            headers,
+          });
+        } else if (operation === 'socialTrending') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/social/trending`,
+            headers,
+          });
+        }
+      }
+
+      // --- Reports ---
+      if (resource === 'reports') {
+        if (operation === 'generateReport') {
+          const ticker = this.getNodeParameter('reportTicker', i) as string;
+          const tier = this.getNodeParameter('reportTier', i, 'quick') as string;
+          response = await this.helpers.httpRequest({
+            method: 'POST',
+            url: `${BASE_URL}/api/v1/reports/generate`,
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: { ticker, tier },
+          });
+        } else if (operation === 'getReport') {
+          const reportId = this.getNodeParameter('reportId', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/reports/${encodeURIComponent(reportId)}`,
+            headers,
+          });
+        }
+      }
+
+      // --- Ticker ---
+      if (resource === 'ticker') {
+        const tickerSymbol = this.getNodeParameter('tickerSymbol', i) as string;
+        if (operation === 'tickerNews') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/ticker/${encodeURIComponent(tickerSymbol)}/news`,
+            headers,
+          });
+        } else if (operation === 'tickerAnalysis') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/ticker/${encodeURIComponent(tickerSymbol)}/analysis`,
             headers,
           });
         }

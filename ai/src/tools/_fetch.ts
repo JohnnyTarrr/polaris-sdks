@@ -42,3 +42,17 @@ export async function polarisGet(
   if (!res.ok) throw new Error(`Polaris API error ${res.status}`);
   return res.json() as Promise<Record<string, unknown>>;
 }
+
+export async function polarisPost(
+  options: ToolOptions,
+  path: string,
+  body: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const base = (options.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
+  const url = `${base}${path}`;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (options.apiKey) headers["Authorization"] = `Bearer ${options.apiKey}`;
+  const res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error(`Polaris API error ${res.status}`);
+  return res.json() as Promise<Record<string, unknown>>;
+}

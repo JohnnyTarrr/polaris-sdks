@@ -164,6 +164,11 @@ class PolarisClient:
             depth_metadata=_parse_depth_metadata(data.get("depth_metadata")),
         )
 
+    def search_suggest(self, q):
+        """Get search autocomplete suggestions."""
+        params = {"q": q}
+        return self._request("GET", "/api/v1/search/suggest", params=params)
+
     def generate(self, topic, category=None):
         """Generate a brief on a given topic."""
         body = {"topic": topic}
@@ -382,6 +387,10 @@ class PolarisClient:
         body.update(kwargs)
         return self._request("POST", "/api/v1/watchlists/{}/items".format(watchlist_id), json_body=body)
 
+    def watchlist_matches(self, watchlist_id):
+        """Get matched briefs for a watchlist."""
+        return self._request("GET", "/api/v1/watchlists/{}/matches".format(watchlist_id))
+
     def create_monitor(self, type, callback_url, **kwargs):
         """Create a webhook monitor."""
         body = {"type": type, "callback_url": callback_url}
@@ -470,6 +479,27 @@ class PolarisClient:
         """Get ticker overview for a symbol."""
         return self._request("GET", "/api/v1/ticker/{}".format(symbol))
 
+    def ticker_prices(self, symbols, paid=False):
+        """Get live prices for one or more ticker symbols."""
+        params = {"symbols": ",".join(symbols)}
+        if paid:
+            params["paid"] = "true"
+        return self._request("GET", "/api/v1/ticker/prices", params=params)
+
+    def ticker_sentiment(self, symbol, period='7d'):
+        """Get sentiment breakdown for a ticker over a period."""
+        params = {"period": period}
+        return self._request("GET", "/api/v1/ticker/{}/sentiment".format(symbol), params=params)
+
+    def ticker_analysis(self, symbol):
+        """Get full analysis for a ticker."""
+        return self._request("GET", "/api/v1/ticker/{}/analysis".format(symbol))
+
+    def ticker_news(self, symbol, limit=10):
+        """Get recent news briefs for a ticker."""
+        params = {"limit": limit}
+        return self._request("GET", "/api/v1/ticker/{}/news".format(symbol), params=params)
+
     def ticker_history(self, symbol, days=30):
         """Get sentiment history for a ticker."""
         params = {"days": days}
@@ -507,6 +537,13 @@ class PolarisClient:
         if type is not None:
             params["type"] = type
         return self._request("GET", "/api/v1/events/calendar", params=params)
+
+    def ipo_calendar(self, status=None):
+        """Get IPO calendar, optionally filtered by status."""
+        params = {}
+        if status is not None:
+            params["status"] = status
+        return self._request("GET", "/api/v1/ipo/calendar", params=params or None)
 
     def portfolio_feed(self, holdings, days=7, limit=30):
         """Get a personalized feed for a portfolio of holdings."""
@@ -591,6 +628,10 @@ class PolarisClient:
         """Get Treasury yield curve data."""
         return self._request("GET", "/api/v1/economy/yields")
 
+    def economy_indicator(self, indicator):
+        """Get data for a specific economic indicator."""
+        return self._request("GET", "/api/v1/economy/{}".format(indicator))
+
     # ── Crypto ──
 
     def crypto(self, symbol=None):
@@ -614,6 +655,10 @@ class PolarisClient:
         if protocol is not None:
             return self._request("GET", "/api/v1/crypto/defi/{}".format(protocol))
         return self._request("GET", "/api/v1/crypto/defi")
+
+    def defi_protocol(self, protocol):
+        """Get detailed data for a specific DeFi protocol."""
+        return self._request("GET", "/api/v1/crypto/defi/{}".format(protocol))
 
     # ── Screener ──
 
@@ -698,3 +743,38 @@ class PolarisClient:
         if days is not None:
             params["days"] = days
         return self._request("GET", "/api/v1/ticker/{}/transcripts".format(symbol), params=params or None)
+
+    # ── Social ──
+
+    def social_sentiment(self, symbol):
+        """Get social media sentiment for a ticker."""
+        return self._request("GET", "/api/v1/ticker/{}/social".format(symbol))
+
+    def social_trending(self):
+        """Get trending topics across social platforms."""
+        return self._request("GET", "/api/v1/social/trending")
+
+    def social_entity(self, entity):
+        """Get social sentiment for a specific entity."""
+        return self._request("GET", "/api/v1/social/sentiment/{}".format(entity))
+
+    # ── Reports ──
+
+    def generate_report(self, ticker, tier='quick'):
+        """Generate a report for a ticker."""
+        body = {"ticker": ticker, "tier": tier}
+        return self._request("POST", "/api/v1/reports/generate", json_body=body)
+
+    def get_report(self, report_id):
+        """Get a report by ID."""
+        return self._request("GET", "/api/v1/reports/{}".format(report_id))
+
+    def list_reports(self, limit=20):
+        """List reports."""
+        params = {"limit": limit}
+        return self._request("GET", "/api/v1/reports", params=params)
+
+    def upload_report(self, ticker, markdown, tier='cli'):
+        """Upload a report."""
+        body = {"ticker": ticker, "markdown": markdown, "tier": tier}
+        return self._request("POST", "/api/v1/reports/upload", json_body=body)

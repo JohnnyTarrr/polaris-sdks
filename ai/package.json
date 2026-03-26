@@ -1,6 +1,6 @@
 {
   "name": "@polaris-news/ai",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "description": "Polaris News tools for the Vercel AI SDK",
   "type": "module",
   "main": "./dist/index.js",

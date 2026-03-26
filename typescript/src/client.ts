@@ -332,6 +332,12 @@ export class PolarisClient {
     };
   }
 
+  /** Get search autocomplete suggestions. */
+  async searchSuggest(q: string): Promise<any> {
+    const params: Record<string, unknown> = { q };
+    return this.request<any>("GET", "/api/v1/search/suggest", params);
+  }
+
   async generate(topic: string, category?: string): Promise<Brief> {
     const body: Record<string, string> = { topic };
     if (category) body.category = category;
@@ -555,6 +561,11 @@ export class PolarisClient {
     return this.request<Record<string, unknown>>("POST", `/api/v1/watchlists/${watchlistId}/items`, undefined, body);
   }
 
+  /** Get matches for a watchlist. */
+  async watchlistMatches(watchlistId: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/watchlists/${encodeURIComponent(watchlistId)}/matches`);
+  }
+
   async createMonitor(options: { type: string; callback_url: string; [key: string]: unknown }): Promise<Record<string, unknown>> {
     return this.request<Record<string, unknown>>("POST", "/api/v1/monitor", undefined, options);
   }
@@ -627,6 +638,32 @@ export class PolarisClient {
     return this.request<TickerScoreResponse>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/score`);
   }
 
+  /** Get live prices for one or more ticker symbols. */
+  async tickerPrices(symbols: string[], paid?: boolean): Promise<any> {
+    const params: Record<string, unknown> = { symbols: symbols.join(",") };
+    if (paid !== undefined) params.paid = paid;
+    return this.request<any>("GET", "/api/v1/ticker/prices", params);
+  }
+
+  /** Get sentiment analysis for a ticker symbol. */
+  async tickerSentiment(symbol: string, period?: string): Promise<any> {
+    const params: Record<string, unknown> = {};
+    if (period !== undefined) params.period = period;
+    return this.request<any>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/sentiment`, params);
+  }
+
+  /** Get full analysis for a ticker symbol. */
+  async tickerAnalysis(symbol: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/analysis`);
+  }
+
+  /** Get recent news for a ticker symbol. */
+  async tickerNews(symbol: string, limit?: number): Promise<any> {
+    const params: Record<string, unknown> = {};
+    if (limit !== undefined) params.limit = limit;
+    return this.request<any>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/news`, params);
+  }
+
   async sectors(options: SectorsOptions = {}): Promise<SectorsResponse> {
     const params: Record<string, unknown> = { ...options };
     return this.request<SectorsResponse>("GET", "/api/v1/sectors", params);
@@ -640,6 +677,13 @@ export class PolarisClient {
   async eventsCalendar(options: EventsCalendarOptions = {}): Promise<EventsCalendarResponse> {
     const params: Record<string, unknown> = { ...options };
     return this.request<EventsCalendarResponse>("GET", "/api/v1/events/calendar", params);
+  }
+
+  /** Get IPO calendar, optionally filtered by status. */
+  async ipoCalendar(status?: string): Promise<any> {
+    const params: Record<string, unknown> = {};
+    if (status !== undefined) params.status = status;
+    return this.request<any>("GET", "/api/v1/ipo/calendar", params);
   }
 
   async portfolioFeed(holdings: PortfolioHolding[], options: PortfolioFeedOptions = {}): Promise<PortfolioFeedResponse> {
@@ -721,6 +765,11 @@ export class PolarisClient {
     return this.request<YieldCurveResponse>("GET", "/api/v1/economy/yields");
   }
 
+  /** Get a specific economic indicator by name. */
+  async economyIndicator(indicator: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/economy/${encodeURIComponent(indicator)}`);
+  }
+
   // ── Crypto ──
 
   async crypto(symbol?: string): Promise<CryptoResponse | CryptoTokenResponse> {
@@ -745,6 +794,11 @@ export class PolarisClient {
       return this.request<DefiProtocolResponse>("GET", `/api/v1/crypto/defi/${encodeURIComponent(protocol)}`);
     }
     return this.request<DefiResponse>("GET", "/api/v1/crypto/defi");
+  }
+
+  /** Get details for a specific DeFi protocol. */
+  async defiProtocol(protocol: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/crypto/defi/${encodeURIComponent(protocol)}`);
   }
 
   // ── Screener ──
@@ -820,6 +874,48 @@ export class PolarisClient {
   async transcripts(symbol: string, options: TranscriptsOptions = {}): Promise<TranscriptsResponse> {
     const params: Record<string, unknown> = { ...options };
     return this.request<TranscriptsResponse>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/transcripts`, params);
+  }
+
+  // ── Social ──
+
+  /** Get social media sentiment for a ticker symbol. */
+  async socialSentiment(symbol: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/ticker/${encodeURIComponent(symbol)}/social`);
+  }
+
+  /** Get trending topics across social media. */
+  async socialTrending(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/social/trending");
+  }
+
+  /** Get social sentiment for a named entity. */
+  async socialEntity(entity: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/social/sentiment/${encodeURIComponent(entity)}`);
+  }
+
+  // ── Reports ──
+
+  /** Generate an AI report for a ticker. */
+  async generateReport(ticker: string, tier?: string): Promise<any> {
+    const body: Record<string, unknown> = { ticker, tier: tier || "quick" };
+    return this.request<any>("POST", "/api/v1/reports/generate", undefined, body);
+  }
+
+  /** Get a previously generated report by ID. */
+  async getReport(reportId: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/reports/${encodeURIComponent(reportId)}`);
+  }
+
+  /** List recent reports. */
+  async listReports(limit?: number): Promise<any> {
+    const params: Record<string, unknown> = { limit: limit ?? 20 };
+    return this.request<any>("GET", "/api/v1/reports", params);
+  }
+
+  /** Upload a CLI-generated report. */
+  async uploadReport(ticker: string, markdown: string, tier?: string): Promise<any> {
+    const body: Record<string, unknown> = { ticker, markdown, tier: tier || "cli" };
+    return this.request<any>("POST", "/api/v1/reports/upload", undefined, body);
   }
 
   stream(options: StreamOptions = {}): { start: (onBrief: (brief: Brief) => void, onError?: (error: Error) => void) => void; stop: () => void } {
