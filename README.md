@@ -27,7 +27,7 @@ print(result.trade_signal)   # { action: "hold", score: 50, factors: [...] }
 ```
 
 ```typescript
-import { Agent } from 'polaris-news-api';
+import { Agent } from '@veroq/sdk';
 const agent = new Agent();
 const result = await agent.ask("What's happening with NVDA?");
 ```
@@ -40,7 +40,7 @@ const result = await agent.ask("What's happening with NVDA?");
 |---------|------|---------|
 | [`@veroq/cli`](./veroq-cli/) | CLI | `npm install -g @veroq/cli` |
 | [`veroq`](./veroq-python/) | Python SDK | `pip install veroq` |
-| [`polaris-news-api`](./typescript/) | TypeScript SDK | `npm install polaris-news-api` |
+| [`@veroq/sdk`](./typescript/) | TypeScript SDK | `npm install @veroq/sdk` |
 | [`@veroq/ai`](./veroq-ai/) | Vercel AI SDK | `npm install @veroq/ai` |
 | [`crewai-veroq`](./crewai-veroq/) | CrewAI | `pip install crewai-veroq` |
 | [`langchain-veroq`](./langchain-veroq/) | LangChain | `pip install langchain-veroq` |
