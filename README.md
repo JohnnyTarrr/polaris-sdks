@@ -16,20 +16,41 @@ veroq signal MSFT
 veroq compare AAPL MSFT GOOGL
 ```
 
-Or use the SDKs:
+Or use the SDKs — **two methods, entire financial intelligence stack:**
 
 ```python
-from veroq import Agent
-agent = Agent()
-result = agent.ask("What's happening with NVDA?")
-print(result.summary)        # Markdown summary with bottom line
-print(result.trade_signal)   # { action: "hold", score: 50, factors: [...] }
+from veroq import VeroqClient
+
+client = VeroqClient()  # uses VEROQ_API_KEY env var
+
+# Ask anything — routes to 40+ endpoints automatically
+answer = client.ask("How is NVDA doing?")
+print(answer["summary"])        # LLM-powered natural language summary
+print(answer["trade_signal"])   # { action: "hold", score: 50, factors: [...] }
+
+# Verify anything — corpus + live web evidence
+result = client.verify("NVIDIA beat Q4 earnings")
+print(result["verdict"])              # "supported"
+print(result["confidence_breakdown"]) # { source_agreement: 0.92, ... }
+print(result["evidence_chain"])       # [{ source: "Reuters", snippet: "...", url: "..." }]
+
+# Stream in real-time
+for event in client.ask_stream("AAPL price and technicals"):
+    if event["type"] == "summary_token":
+        print(event["data"]["token"], end="", flush=True)
 ```
 
 ```typescript
-import { Agent } from '@veroq/sdk';
-const agent = new Agent();
-const result = await agent.ask("What's happening with NVDA?");
+import { VeroqClient } from '@veroq/sdk';
+const client = new VeroqClient();
+
+const answer = await client.ask("How is NVDA doing?");
+const result = await client.verify("NVIDIA beat Q4 earnings");
+
+// Stream via SSE
+for await (const event of client.askStream("AAPL technicals")) {
+  if (event.type === "summary_token") process.stdout.write(event.data.token);
+}
 ```
 
 [Try it live](https://veroq.ai) — no signup required.
@@ -62,7 +83,7 @@ const result = await agent.ask("What's happening with NVDA?");
 | `veroq full <TICKER>` | 9 data sources in one call |
 | `veroq market` | Market overview + VIX |
 | `veroq news <query>` | Search intelligence briefs |
-| `veroq verify <claim>` | Fact-check against brief corpus |
+| `veroq verify <claim>` | Fact-check against corpus + live web |
 
 JSON by default (agent-first). Use `--human` for formatted output.
 
@@ -83,6 +104,9 @@ See [`examples/`](./examples/) for working integration examples:
 - **Verified intelligence briefs** — bias-scored, confidence-rated
 - **Real-time subscriptions** via SSE
 - **300+ API endpoints** — all structured JSON
+- **`/ask`** — one endpoint, 41 intents, routes to everything. LLM summaries, SSE streaming
+- **`/verify`** — evidence chain, confidence breakdown, live web fallback
+- **8 SDKs** — all v1.1.0, ask + verify as hero methods
 
 ## Auth
 
