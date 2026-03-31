@@ -1,0 +1,74 @@
+{
+  "name": "@veroq/sdk",
+  "version": "2.0.0",
+  "description": "VeroQ TypeScript SDK — the verified intelligence layer for AI agents",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "bin": {
+    "veroq": "./dist/esm/cli.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build": "npm run build:esm && npm run build:cjs",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "veroq",
+    "verified",
+    "intelligence",
+    "api",
+    "sdk",
+    "knowledge",
+    "ai",
+    "agents",
+    "financial",
+    "typescript",
+    "nlp"
+  ],
+  "author": {
+    "name": "VEROQ",
+    "email": "dev@veroq.ai",
+    "url": "https://veroq.ai"
+  },
+  "license": "MIT",
+  "homepage": "https://veroq.ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Polaris-API/polaris-sdks",
+    "directory": "veroq-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/Polaris-API/polaris-sdks/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.4.0",
+    "vitest": "^3.0.0"
+  }
+}
