@@ -6,6 +6,21 @@ Every claim is fact-checked with evidence chains. Every output includes confiden
 
 > Migrating from `polaris-news`? Drop-in replacement — just change your import.
 
+## Prompt Shield — One Line to Verify Any LLM
+
+```python
+from veroq import shield
+
+result = shield("NVIDIA reported $22B in Q4 revenue")
+print(result.trust_score)      # 0.73
+print(result.is_trusted)       # False — claims contradicted
+print(result.corrections)      # [{"claim": "...", "correction": "actual revenue was $68B"}]
+print(result.verified_text)    # text with corrections inline
+print(result.receipt_ids)      # ["vr_abc123"] — permanent proof
+```
+
+Works with any LLM. One function. Every claim fact-checked.
+
 ## Installation
 
 ```bash

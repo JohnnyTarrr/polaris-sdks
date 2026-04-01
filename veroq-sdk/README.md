@@ -6,6 +6,21 @@ Every claim is fact-checked with evidence chains. Every output includes confiden
 
 > Migrating from `polaris-news-api`? Drop-in replacement — just change your import.
 
+## Prompt Shield — One Line to Verify Any LLM
+
+```typescript
+import { shield } from "@veroq/sdk";
+
+const result = await shield("NVIDIA reported $22B in Q4 revenue");
+console.log(result.trustScore);    // 0.73
+console.log(result.isTrusted);     // false — claims contradicted
+console.log(result.corrections);   // [{claim: "...", correction: "actual revenue was $68B"}]
+console.log(result.verifiedText);  // text with corrections inline
+console.log(result.receiptIds);    // ["vr_abc123"] — permanent proof
+```
+
+Works with any LLM. One function. Every claim fact-checked.
+
 ## Installation
 
 ```bash
