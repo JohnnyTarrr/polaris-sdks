@@ -117,17 +117,49 @@ trail = client.get_audit_trail(session_id="trading-session-001")
 | **Continuous improvement** | Feedback loop with web search fallback fills data gaps over time |
 | **Multi-domain** | Finance (flagship), legal, research, compliance, custom verticals |
 
+## Cached Shield — High-Volume Pipelines
+
+```python
+from veroq import CachedShield
+
+cached = CachedShield(max_cache=1000, ttl_seconds=3600)
+result = cached("NVIDIA reported $22B in Q4 revenue")   # API call
+result = cached("NVIDIA reported $22B in Q4 revenue")   # instant, 0 credits
+print(cached.stats())  # {'hits': 1, 'misses': 1, 'hit_rate': 0.5, 'size': 1}
+```
+
+## Agent Monitoring
+
+```python
+# Set up autonomous monitoring
+client.agent_auto_monitor("my-bot", trust_threshold=0.7, check_interval_hours=6)
+
+# Manual health check
+health = client.agent_health_check("my-bot")
+print(health["health"]["status"])        # "healthy" or "degraded"
+print(health["health"]["trust_trend"])   # "improving" / "declining" / "stable"
+```
+
 ## All Methods
 
 | Method | Description |
 |--------|-------------|
+| `shield(text)` | Verify any LLM output (module-level) |
+| `CachedShield(...)` | Local LRU cache for high-volume shield calls |
 | `ask(question)` | Ask any financial question |
 | `ask_stream(question)` | Stream via SSE |
 | `verify(claim)` | Fact-check with evidence chain |
+| `verify_output(text)` | Extract + verify claims from any text |
 | `create_verified_swarm(query, ...)` | Multi-agent verified pipeline |
 | `create_runtime(query, ...)` | Domain-specific runtime |
 | `call_external_tool(server_id, tool, params)` | Secure external tool proxy |
 | `submit_feedback(...)` | Self-improvement feedback |
+| `memory_store(agent_id, key, value)` | Store agent memory |
+| `memory_recall(agent_id)` | Recall agent memories |
+| `memory_list(agent_id)` | List all agent memories |
+| `agent_auto_monitor(agent_id)` | Configure autonomous monitoring |
+| `agent_health_check(agent_id)` | Trigger health check |
+| `watch(tickers)` | Real-time SSE verification stream |
 | `configure_enterprise(config)` | Enterprise governance |
 | `get_decision_lineage(tool, input, output)` | Decision audit |
 | `get_audit_trail(session_id?)` | Audit trail |
