@@ -387,6 +387,9 @@ USAGE
 COMMANDS
   ask <question>              Ask any financial question (natural language)
   verify <claim>              Fact-check a claim against verified intelligence
+  shield <text>               Verify any LLM output — extract + check claims
+  swarm <query>               Run 5-agent verified analysis pipeline
+  analyze <TICKER>            Deep analysis (swarm-backed /ask with deep=true)
   price <TICKER>              Live price
   screen <criteria>           NLP stock screener ("oversold semiconductors")
   compare <T1> <T2> [T3...]  Side-by-side comparison
@@ -398,8 +401,10 @@ COMMANDS
   market                      Market overview + indices
   news <query>                Search intelligence briefs
   search <query>              Alias for news
-  shield-doc <text> [--type]   Verify document text (pdf, transcript, filing)
-  test <file.json>            CI/CD shield — verify AI outputs from a test file
+  shield-doc <text> [--type]  Verify document text (pdf, transcript, filing)
+  feedback [--session] [--reason] [--detail]  Submit feedback
+  consolidate <agent_id>      Compress old memories into snapshot
+  test <file.json>            CI/CD shield — verify AI outputs from test file
                               Exits with code 1 if any test fails threshold
 
 OUTPUT
