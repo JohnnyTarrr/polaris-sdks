@@ -231,7 +231,7 @@ export class VeroqClient {
   private auditLog: Record<string, unknown>[] = [];
 
   constructor(options: VeroqClientOptions = {}) {
-    this.apiKey = options.apiKey ?? readCredentials();
+    this.apiKey = options.apiKey ?? readCredentials() ?? "demo";
     this.baseUrl = (options.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
   }
 
@@ -279,6 +279,10 @@ export class VeroqClient {
       throw new NotFoundError(msg, body);
     }
     if (resp.status === 429) {
+      if (this.apiKey === "demo") {
+        const signupUrl = (body as Record<string, any>)?.signup_url || "https://veroq.ai/settings";
+        console.log(`\n  Shield demo limit reached. Get your free API key:\n\n  1. Sign up at ${signupUrl}\n  2. Create an API key\n  3. export VEROQ_API_KEY=your_key_here\n`);
+      }
       const retryAfter = resp.headers.get("Retry-After") || resp.headers.get("RateLimit-Reset");
       const parsed = retryAfter ? (isNaN(Number(retryAfter)) ? retryAfter : Number(retryAfter)) : null;
       throw new RateLimitError(msg, body, parsed);
@@ -1280,6 +1284,172 @@ export class VeroqClient {
   /** Delete a knowledge base document and its chunks. */
   async knowledgeDelete(documentId: string): Promise<Record<string, any>> {
     return this.request<Record<string, any>>("DELETE", `/api/v1/knowledge/documents/${encodeURIComponent(documentId)}`);
+  }
+
+  // -- Fast Tier --
+
+  /** Get fast market signals. */
+  async fastSignals(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/fast/signals");
+  }
+
+  /** Get fast macro overview. */
+  async fastMacro(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/fast/macro");
+  }
+
+  /** Get a fast snapshot for a ticker. */
+  async fastSnapshot(ticker: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/fast/snapshot/${encodeURIComponent(ticker)}`);
+  }
+
+  /** Get fast market movers. */
+  async fastMovers(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/fast/movers");
+  }
+
+  /** Get fast market heatmap. */
+  async fastHeatmap(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/fast/heatmap");
+  }
+
+  // -- Travel Intelligence --
+
+  /** Get travel intelligence overview. */
+  async travelOverview(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/travel/overview");
+  }
+
+  /** Get TSA checkpoint throughput data. */
+  async travelTsa(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/travel/tsa");
+  }
+
+  /** Get FAA flight data. */
+  async travelFaa(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/travel/faa");
+  }
+
+  // -- SEC EDGAR --
+
+  /** Get SEC EDGAR filings for a ticker. */
+  async edgarFilings(ticker: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/edgar/filings/${encodeURIComponent(ticker)}`);
+  }
+
+  /** Get SEC EDGAR insider transactions for a ticker. */
+  async edgarInsider(ticker: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/edgar/insider/${encodeURIComponent(ticker)}`);
+  }
+
+  /** Get SEC EDGAR financials for a ticker. */
+  async edgarFinancials(ticker: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/edgar/financials/${encodeURIComponent(ticker)}`);
+  }
+
+  // -- Energy --
+
+  /** Get energy market overview. */
+  async energyOverview(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/energy/overview");
+  }
+
+  // -- Alternative Data --
+
+  /** Get alternative yield data. */
+  async altYields(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/alt/yields");
+  }
+
+  /** Get Commitment of Traders data for a commodity. */
+  async altCot(commodity: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/alt/cot/${encodeURIComponent(commodity)}`);
+  }
+
+  /** Get attention/interest data for an entity. */
+  async altAttention(entity: string): Promise<any> {
+    return this.request<any>("GET", `/api/v1/alt/attention/${encodeURIComponent(entity)}`);
+  }
+
+  // -- Research Data --
+
+  /** Get research papers, optionally filtered by category. */
+  async researchPapers(params?: { category?: string }): Promise<any> {
+    const p: Record<string, unknown> = {};
+    if (params?.category !== undefined) p.category = params.category;
+    return this.request<any>("GET", "/api/v1/research/papers", p);
+  }
+
+  /** Get trending GitHub repositories. */
+  async researchGithubTrending(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/research/github-trending");
+  }
+
+  /** Get FDA data, optionally filtered by type. */
+  async researchFda(params?: { type?: string }): Promise<any> {
+    const p: Record<string, unknown> = {};
+    if (params?.type !== undefined) p.type = params.type;
+    return this.request<any>("GET", "/api/v1/research/fda", p);
+  }
+
+  /** Get congressional bills. */
+  async researchBills(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/research/bills");
+  }
+
+  /** Get federal regulations. */
+  async researchRegulations(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/research/regulations");
+  }
+
+  // -- World Data --
+
+  /** Get Hacker News top stories. */
+  async worldHackernews(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/world/hackernews");
+  }
+
+  /** Get job market data. */
+  async worldJobs(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/world/jobs");
+  }
+
+  /** Get world GDP data. */
+  async worldGdp(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/world/gdp");
+  }
+
+  // -- Congress --
+
+  /** Get congressional trading data, optionally filtered by symbol. */
+  async congressTrades(params?: { symbol?: string }): Promise<any> {
+    const p: Record<string, unknown> = {};
+    if (params?.symbol !== undefined) p.symbol = params.symbol;
+    return this.request<any>("GET", "/api/v1/congress/trades", p);
+  }
+
+  // -- Intelligence --
+
+  /** Get cross-category context for a topic. */
+  async context(topic: string): Promise<any> {
+    return this.request<any>("GET", "/api/v1/context", { topic });
+  }
+
+  /** Get cross-category impact analysis for a topic. */
+  async intelligence(topic: string): Promise<any> {
+    return this.request<any>("GET", "/api/v1/intelligence", { topic });
+  }
+
+  // -- Agent Packs + Explainability --
+
+  /** List available agent packs. */
+  async agentPacks(): Promise<any> {
+    return this.request<any>("GET", "/api/v1/agents/packs");
+  }
+
+  /** Run an agent pack by slug. */
+  async agentRun(slug: string, inputs?: Record<string, any>): Promise<any> {
+    return this.request<any>("POST", `/api/v1/agents/run/${encodeURIComponent(slug)}`, undefined, inputs || {});
   }
 
   stream(options: StreamOptions = {}): { start: (onBrief: (brief: Brief) => void, onError?: (error: Error) => void) => void; stop: () => void } {
