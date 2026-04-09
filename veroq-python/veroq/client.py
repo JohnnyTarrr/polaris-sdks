@@ -51,11 +51,11 @@ class VeroqClient:
     DEFAULT_BASE_URL = "https://api.veroq.ai"
 
     def __init__(self, api_key=None, base_url=None):
-        self.api_key = api_key or _read_credentials()
+        self.api_key = api_key or _read_credentials() or "demo"
+        self.is_demo = self.api_key == "demo"
         self.base_url = (base_url or self.DEFAULT_BASE_URL).rstrip("/")
         self._session = requests.Session()
-        if self.api_key:
-            self._session.headers["Authorization"] = "Bearer {}".format(self.api_key)
+        self._session.headers["Authorization"] = "Bearer {}".format(self.api_key)
 
     def _request(self, method, path, params=None, json_body=None):
         url = "{}{}".format(self.base_url, path)
@@ -76,6 +76,19 @@ class VeroqClient:
             raise AuthenticationError(msg, status_code=401, response_body=body)
         elif resp.status_code == 404:
             raise NotFoundError(msg, status_code=404, response_body=body)
+        elif resp.status_code == 429 and self.is_demo:
+            # Demo limit hit — open browser to signup page
+            signup_url = body.get("signup_url", "https://veroq.ai/settings") if isinstance(body, dict) else "https://veroq.ai/settings"
+            print("\n  Shield demo limit reached. Opening browser to get your free API key...\n")
+            print("  1. Sign up at {}".format(signup_url))
+            print("  2. Create an API key")
+            print("  3. export VEROQ_API_KEY=your_key_here\n")
+            try:
+                import webbrowser
+                webbrowser.open(signup_url)
+            except Exception:
+                pass
+            raise RateLimitError(msg, status_code=429, response_body=body)
         elif resp.status_code == 429:
             retry_after = resp.headers.get("Retry-After") or resp.headers.get("RateLimit-Reset")
             if retry_after is not None:
@@ -1297,3 +1310,168 @@ class VeroqClient:
         if enterprise_id:
             body["enterprise_id"] = enterprise_id
         return self._request("POST", "/api/v1/feedback", json_body=body)
+
+    # -- Fast Tier --
+
+    def fast_signals(self, **kwargs):
+        """Get fast market signals snapshot."""
+        return self._request("GET", "/api/v1/fast/signals", params=kwargs or None)
+
+    def fast_macro(self, **kwargs):
+        """Get fast macro overview."""
+        return self._request("GET", "/api/v1/fast/macro", params=kwargs or None)
+
+    def fast_snapshot(self, ticker, **kwargs):
+        """Get fast snapshot for a single ticker."""
+        return self._request("GET", "/api/v1/fast/snapshot/{}".format(ticker), params=kwargs or None)
+
+    def fast_movers(self, **kwargs):
+        """Get fast market movers."""
+        return self._request("GET", "/api/v1/fast/movers", params=kwargs or None)
+
+    def fast_heatmap(self, **kwargs):
+        """Get fast sector/market heatmap."""
+        return self._request("GET", "/api/v1/fast/heatmap", params=kwargs or None)
+
+    # -- Travel Intelligence --
+
+    def travel_overview(self, **kwargs):
+        """Get travel intelligence overview."""
+        return self._request("GET", "/api/v1/travel/overview", params=kwargs or None)
+
+    def travel_tsa(self, **kwargs):
+        """Get TSA checkpoint throughput data."""
+        return self._request("GET", "/api/v1/travel/tsa", params=kwargs or None)
+
+    def travel_faa(self, **kwargs):
+        """Get FAA flight delay and safety data."""
+        return self._request("GET", "/api/v1/travel/faa", params=kwargs or None)
+
+    # -- SEC EDGAR --
+
+    def edgar_filings(self, ticker, **kwargs):
+        """Get SEC EDGAR filings for a ticker."""
+        return self._request("GET", "/api/v1/edgar/filings/{}".format(ticker), params=kwargs or None)
+
+    def edgar_insider(self, ticker, **kwargs):
+        """Get SEC EDGAR insider trading data for a ticker."""
+        return self._request("GET", "/api/v1/edgar/insider/{}".format(ticker), params=kwargs or None)
+
+    def edgar_financials(self, ticker, **kwargs):
+        """Get SEC EDGAR financial data for a ticker."""
+        return self._request("GET", "/api/v1/edgar/financials/{}".format(ticker), params=kwargs or None)
+
+    # -- Energy --
+
+    def energy_overview(self, **kwargs):
+        """Get energy market overview."""
+        return self._request("GET", "/api/v1/energy/overview", params=kwargs or None)
+
+    # -- Alternative Data --
+
+    def alt_yields(self, **kwargs):
+        """Get alternative yield data."""
+        return self._request("GET", "/api/v1/alt/yields", params=kwargs or None)
+
+    def alt_cot(self, commodity, **kwargs):
+        """Get Commitments of Traders (COT) data for a commodity."""
+        return self._request("GET", "/api/v1/alt/cot/{}".format(commodity), params=kwargs or None)
+
+    def alt_attention(self, entity, **kwargs):
+        """Get attention/interest data for an entity."""
+        return self._request("GET", "/api/v1/alt/attention/{}".format(entity), params=kwargs or None)
+
+    # -- Research Data --
+
+    def research_papers(self, category=None, **kwargs):
+        """Get research papers, optionally filtered by category."""
+        params = {**kwargs}
+        if category is not None:
+            params["category"] = category
+        return self._request("GET", "/api/v1/research/papers", params=params or None)
+
+    def research_github_trending(self, **kwargs):
+        """Get trending GitHub repositories."""
+        return self._request("GET", "/api/v1/research/github-trending", params=kwargs or None)
+
+    def research_fda(self, type=None, **kwargs):
+        """Get FDA approvals and actions, optionally filtered by type."""
+        params = {**kwargs}
+        if type is not None:
+            params["type"] = type
+        return self._request("GET", "/api/v1/research/fda", params=params or None)
+
+    def research_bills(self, **kwargs):
+        """Get congressional bills and legislation."""
+        return self._request("GET", "/api/v1/research/bills", params=kwargs or None)
+
+    def research_regulations(self, **kwargs):
+        """Get federal regulations and rulemaking."""
+        return self._request("GET", "/api/v1/research/regulations", params=kwargs or None)
+
+    # -- World Data --
+
+    def world_hackernews(self, **kwargs):
+        """Get top Hacker News stories."""
+        return self._request("GET", "/api/v1/world/hackernews", params=kwargs or None)
+
+    def world_jobs(self, **kwargs):
+        """Get jobs/employment data."""
+        return self._request("GET", "/api/v1/world/jobs", params=kwargs or None)
+
+    def world_gdp(self, **kwargs):
+        """Get GDP data."""
+        return self._request("GET", "/api/v1/world/gdp", params=kwargs or None)
+
+    # -- Social (entity-level) --
+
+    def social_sentiment_entity(self, entity, **kwargs):
+        """Get social media sentiment for an entity (non-ticker)."""
+        return self._request("GET", "/api/v1/social/sentiment/{}".format(entity), params=kwargs or None)
+
+    # -- Congress --
+
+    def congress_trades(self, symbol=None, **kwargs):
+        """Get congressional trading data, optionally filtered by symbol."""
+        params = {**kwargs}
+        if symbol is not None:
+            params["symbol"] = symbol
+        return self._request("GET", "/api/v1/congress/trades", params=params or None)
+
+    # -- Intelligence --
+
+    def context(self, topic, **kwargs):
+        """Get contextual intelligence for a topic."""
+        params = {"topic": topic, **kwargs}
+        return self._request("GET", "/api/v1/context", params=params)
+
+    def intelligence(self, topic, **kwargs):
+        """Get cross-category impact analysis for a topic."""
+        params = {"topic": topic, **kwargs}
+        return self._request("GET", "/api/v1/intelligence", params=params)
+
+    # -- Agent Packs & Explainability --
+
+    def agent_packs(self, **kwargs):
+        """List available agent packs."""
+        return self._request("GET", "/api/v1/agents/packs", params=kwargs or None)
+
+    def agent_run(self, slug, **inputs):
+        """Run an agent pack by slug.
+
+        Args:
+            slug: Agent pack slug (e.g., "earnings-analyzer").
+            **inputs: Input parameters for the agent pack.
+
+        Returns:
+            dict with agent run results.
+        """
+        url = "/api/v1/agents/run/{}".format(slug)
+        resp = self._session.post(
+            "{}{}".format(self.base_url, url),
+            json=inputs or {},
+            headers={**self._session.headers, "Accept": "application/json"},
+        )
+        if resp.status_code >= 400:
+            self._raise_error(resp)
+        return resp.json()
