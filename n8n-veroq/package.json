@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-veroq",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "n8n community node for VEROQ Intelligence API — verified, bias-scored intelligence across 18 verticals",
   "license": "MIT",
   "n8n": {

@@ -35,16 +35,24 @@ export class Veroq implements INodeType {
         type: 'options',
         noDataExpression: true,
         options: [
+          { name: 'Alt Data', value: 'altData' },
           { name: 'Ask', value: 'ask' },
           { name: 'Briefs', value: 'briefs' },
           { name: 'Crypto', value: 'crypto' },
+          { name: 'Energy', value: 'energy' },
+          { name: 'Entities', value: 'entities' },
+          { name: 'Fast Tier', value: 'fast' },
           { name: 'Intelligence', value: 'intelligence' },
           { name: 'Market Data', value: 'marketData' },
           { name: 'Reports', value: 'reports' },
+          { name: 'Research', value: 'research' },
           { name: 'Search', value: 'search' },
+          { name: 'SEC EDGAR', value: 'edgar' },
           { name: 'Social', value: 'social' },
           { name: 'Ticker', value: 'ticker' },
+          { name: 'Travel', value: 'travel' },
           { name: 'Web', value: 'web' },
+          { name: 'World Data', value: 'worldData' },
         ],
         default: 'ask',
       },
@@ -94,6 +102,8 @@ export class Veroq implements INodeType {
           { name: 'Get Feed', value: 'getFeed', description: 'Get latest intelligence briefs' },
           { name: 'Get Brief', value: 'getBrief', description: 'Get a specific brief by ID' },
           { name: 'Get Timeline', value: 'getTimeline', description: 'Get timeline for a topic' },
+          { name: 'Historical', value: 'historical', description: 'Get historical briefs from a date' },
+          { name: 'Trending', value: 'trending', description: 'Get trending briefs' },
         ],
         default: 'getFeed',
       },
@@ -121,9 +131,13 @@ export class Veroq implements INodeType {
         noDataExpression: true,
         displayOptions: { show: { resource: ['intelligence'] } },
         options: [
-          { name: 'Verify', value: 'verify', description: 'Verify a claim' },
-          { name: 'Forecast', value: 'forecast', description: 'Generate a forecast' },
+          { name: 'Compare Sources', value: 'compareSources', description: 'Compare sources on a topic' },
           { name: 'Context', value: 'context', description: 'Get contextual analysis' },
+          { name: 'Contradictions', value: 'contradictions', description: 'Get contradictions across sources' },
+          { name: 'Forecast', value: 'forecast', description: 'Generate a forecast' },
+          { name: 'Impact Analysis', value: 'impactAnalysis', description: 'Cross-category impact analysis for a topic' },
+          { name: 'Topic Research', value: 'topicResearch', description: 'Research a topic with contextual analysis' },
+          { name: 'Verify', value: 'verify', description: 'Verify a claim' },
         ],
         default: 'verify',
       },
@@ -166,12 +180,14 @@ export class Veroq implements INodeType {
         options: [
           { name: 'Candles', value: 'candles', description: 'Get OHLCV candlestick data for a ticker' },
           { name: 'Commodities', value: 'commodities', description: 'Get commodities data' },
+          { name: 'Congress Trades', value: 'congressTrades', description: 'Get congressional trading activity' },
           { name: 'Earnings', value: 'earnings', description: 'Get earnings data for a ticker' },
           { name: 'Economy Indicator', value: 'economyIndicator', description: 'Get economic indicator data' },
           { name: 'Forex', value: 'forex', description: 'Get foreign exchange rates' },
           { name: 'IPO Calendar', value: 'ipoCalendar', description: 'Get upcoming IPOs' },
           { name: 'Market Movers', value: 'marketMovers', description: 'Get top market movers (gainers, losers, active)' },
           { name: 'Market Summary', value: 'marketSummary', description: 'Get overall market summary and indices' },
+          { name: 'Sectors', value: 'sectors', description: 'Get sector performance data' },
           { name: 'Technicals', value: 'technicals', description: 'Get technical analysis indicators for a ticker' },
         ],
         default: 'candles',
@@ -202,6 +218,7 @@ export class Veroq implements INodeType {
         displayOptions: { show: { resource: ['social'] } },
         options: [
           { name: 'Social Sentiment', value: 'socialSentiment', description: 'Get social media sentiment for a ticker' },
+          { name: 'Social Sentiment (Entity)', value: 'socialSentimentEntity', description: 'Get social sentiment for any entity' },
           { name: 'Social Trending', value: 'socialTrending', description: 'Get trending tickers on social media' },
         ],
         default: 'socialSentiment',
@@ -219,6 +236,127 @@ export class Veroq implements INodeType {
           { name: 'Ticker News', value: 'tickerNews', description: 'Get recent news for a ticker' },
         ],
         default: 'tickerNews',
+      },
+
+      // ------ Fast Tier operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['fast'] } },
+        options: [
+          { name: 'Heatmap', value: 'heatmap', description: 'Get market heatmap' },
+          { name: 'Macro', value: 'macro', description: 'Get macro overview' },
+          { name: 'Movers', value: 'movers', description: 'Get fast movers' },
+          { name: 'Signals', value: 'signals', description: 'Get fast signals' },
+          { name: 'Snapshot', value: 'snapshot', description: 'Get fast snapshot for a ticker' },
+        ],
+        default: 'signals',
+      },
+
+      // ------ Travel operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['travel'] } },
+        options: [
+          { name: 'FAA', value: 'faa', description: 'Get FAA data' },
+          { name: 'Overview', value: 'overview', description: 'Get travel overview' },
+          { name: 'TSA', value: 'tsa', description: 'Get TSA throughput data' },
+        ],
+        default: 'overview',
+      },
+
+      // ------ SEC EDGAR operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['edgar'] } },
+        options: [
+          { name: 'Filings', value: 'filings', description: 'Get SEC filings for a ticker' },
+          { name: 'Financials', value: 'financials', description: 'Get financial statements for a ticker' },
+          { name: 'Insider', value: 'insider', description: 'Get insider trading data for a ticker' },
+        ],
+        default: 'filings',
+      },
+
+      // ------ Energy operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['energy'] } },
+        options: [
+          { name: 'Overview', value: 'overview', description: 'Get energy market overview' },
+        ],
+        default: 'overview',
+      },
+
+      // ------ Alt Data operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['altData'] } },
+        options: [
+          { name: 'Attention', value: 'attention', description: 'Get attention data for an entity' },
+          { name: 'COT', value: 'cot', description: 'Get Commitment of Traders data for a commodity' },
+          { name: 'Yields', value: 'yields', description: 'Get yield curve data' },
+        ],
+        default: 'yields',
+      },
+
+      // ------ Research operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['research'] } },
+        options: [
+          { name: 'Bills', value: 'bills', description: 'Get recent congressional bills' },
+          { name: 'FDA', value: 'fda', description: 'Get FDA approvals or recalls' },
+          { name: 'GitHub Trending', value: 'githubTrending', description: 'Get trending GitHub repositories' },
+          { name: 'Papers', value: 'papers', description: 'Get research papers' },
+          { name: 'Regulations', value: 'regulations', description: 'Get recent regulations' },
+        ],
+        default: 'papers',
+      },
+
+      // ------ World Data operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['worldData'] } },
+        options: [
+          { name: 'GDP', value: 'gdp', description: 'Get global GDP data' },
+          { name: 'Hacker News', value: 'hackernews', description: 'Get top Hacker News stories' },
+          { name: 'Jobs', value: 'jobs', description: 'Get jobs data' },
+        ],
+        default: 'hackernews',
+      },
+
+      // ------ Entities operations ------
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['entities'] } },
+        options: [
+          { name: 'Entity Briefs', value: 'entityBriefs', description: 'Get briefs for a named entity' },
+          { name: 'Trending', value: 'entityTrending', description: 'Get trending entities' },
+        ],
+        default: 'entityTrending',
       },
 
       // ------ Input fields ------
@@ -260,14 +398,14 @@ export class Veroq implements INodeType {
         description: 'The claim to verify',
       },
 
-      // Topic (for forecast, context)
+      // Topic (for forecast, context, topicResearch, impactAnalysis, compareSources)
       {
         displayName: 'Topic',
         name: 'topic',
         type: 'string',
         default: '',
         required: true,
-        displayOptions: { show: { resource: ['intelligence'], operation: ['forecast', 'context'] } },
+        displayOptions: { show: { resource: ['intelligence'], operation: ['forecast', 'context', 'topicResearch', 'impactAnalysis', 'compareSources'] } },
         description: 'The topic to analyze',
       },
 
@@ -513,6 +651,144 @@ export class Veroq implements INodeType {
         displayOptions: { show: { resource: ['reports'], operation: ['getReport'] } },
         description: 'The ID of the report to retrieve',
       },
+
+      // ------ Fast Tier input fields ------
+
+      // Ticker (for fast/snapshot)
+      {
+        displayName: 'Ticker',
+        name: 'fastTicker',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: { show: { resource: ['fast'], operation: ['snapshot'] } },
+        description: 'Ticker symbol (e.g. AAPL, MSFT, NVDA)',
+      },
+
+      // ------ SEC EDGAR input fields ------
+
+      // Ticker (for edgar/filings, insider, financials)
+      {
+        displayName: 'Ticker',
+        name: 'edgarTicker',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: { show: { resource: ['edgar'], operation: ['filings', 'insider', 'financials'] } },
+        description: 'Ticker symbol (e.g. AAPL, MSFT, NVDA)',
+      },
+
+      // ------ Alt Data input fields ------
+
+      // Commodity (for alt/cot)
+      {
+        displayName: 'Commodity',
+        name: 'commodity',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: { show: { resource: ['altData'], operation: ['cot'] } },
+        description: 'Commodity identifier (e.g. crude-oil, gold, sp500)',
+      },
+
+      // Entity (for alt/attention)
+      {
+        displayName: 'Entity',
+        name: 'altEntity',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: { show: { resource: ['altData'], operation: ['attention'] } },
+        description: 'Entity name to get attention data for',
+      },
+
+      // ------ Research input fields ------
+
+      // Category (for research/papers, optional)
+      {
+        displayName: 'Category',
+        name: 'researchCategory',
+        type: 'string',
+        default: '',
+        displayOptions: { show: { resource: ['research'], operation: ['papers'] } },
+        description: 'Filter papers by category (optional)',
+      },
+
+      // Type (for research/fda, optional)
+      {
+        displayName: 'Type',
+        name: 'fdaType',
+        type: 'options',
+        options: [
+          { name: 'All', value: '' },
+          { name: 'Approvals', value: 'approvals' },
+          { name: 'Recalls', value: 'recalls' },
+        ],
+        default: '',
+        displayOptions: { show: { resource: ['research'], operation: ['fda'] } },
+        description: 'Filter by FDA action type',
+      },
+
+      // ------ Entities input fields ------
+
+      // Limit (for entities/trending, optional)
+      {
+        displayName: 'Limit',
+        name: 'entitiesLimit',
+        type: 'number',
+        default: 10,
+        displayOptions: { show: { resource: ['entities'], operation: ['entityTrending'] } },
+        description: 'Maximum number of trending entities to return',
+      },
+
+      // Name (for entities/{name}/briefs)
+      {
+        displayName: 'Entity Name',
+        name: 'entityName',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: { show: { resource: ['entities'], operation: ['entityBriefs'] } },
+        description: 'Name of the entity (e.g. Apple, Elon Musk)',
+      },
+
+      // ------ Briefs new input fields ------
+
+      // From (for historical)
+      {
+        displayName: 'From Date',
+        name: 'historicalFrom',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: { show: { resource: ['briefs'], operation: ['historical'] } },
+        description: 'Start date in YYYY-MM-DD or YYYY format',
+      },
+
+      // ------ Market Data new input fields ------
+
+      // Symbol (for congressTrades, optional)
+      {
+        displayName: 'Symbol',
+        name: 'congressSymbol',
+        type: 'string',
+        default: '',
+        displayOptions: { show: { resource: ['marketData'], operation: ['congressTrades'] } },
+        description: 'Filter by ticker symbol (optional)',
+      },
+
+      // ------ Social new input fields ------
+
+      // Entity (for socialSentimentEntity)
+      {
+        displayName: 'Entity',
+        name: 'socialEntity',
+        type: 'string',
+        default: '',
+        required: true,
+        displayOptions: { show: { resource: ['social'], operation: ['socialSentimentEntity'] } },
+        description: 'Entity name to get social sentiment for',
+      },
     ],
   };
 
@@ -579,6 +855,20 @@ export class Veroq implements INodeType {
             headers: { ...headers, 'Content-Type': 'application/json' },
             body: { topic: query },
           });
+        } else if (operation === 'trending') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/trending`,
+            headers,
+          });
+        } else if (operation === 'historical') {
+          const from = this.getNodeParameter('historicalFrom', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/historical`,
+            headers,
+            qs: { from },
+          });
         }
       }
 
@@ -640,6 +930,36 @@ export class Veroq implements INodeType {
             url: `${BASE_URL}/api/v1/intelligence`,
             headers: { ...headers, 'Content-Type': 'application/json' },
             body: { topic },
+          });
+        } else if (operation === 'topicResearch') {
+          const topic = this.getNodeParameter('topic', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/context`,
+            headers,
+            qs: { topic },
+          });
+        } else if (operation === 'impactAnalysis') {
+          const topic = this.getNodeParameter('topic', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/intelligence`,
+            headers,
+            qs: { topic },
+          });
+        } else if (operation === 'contradictions') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/contradictions`,
+            headers,
+          });
+        } else if (operation === 'compareSources') {
+          const topic = this.getNodeParameter('topic', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/compare/sources`,
+            headers,
+            qs: { topic },
           });
         }
       }
@@ -740,6 +1060,22 @@ export class Veroq implements INodeType {
             url: `${BASE_URL}/api/v1/ipo/calendar`,
             headers,
           });
+        } else if (operation === 'sectors') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/sectors`,
+            headers,
+          });
+        } else if (operation === 'congressTrades') {
+          const congressSymbol = this.getNodeParameter('congressSymbol', i, '') as string;
+          const qs: Record<string, any> = {};
+          if (congressSymbol) qs.symbol = congressSymbol;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/congress/trades`,
+            headers,
+            qs,
+          });
         }
       }
 
@@ -800,6 +1136,13 @@ export class Veroq implements INodeType {
             url: `${BASE_URL}/api/v1/social/trending`,
             headers,
           });
+        } else if (operation === 'socialSentimentEntity') {
+          const entity = this.getNodeParameter('socialEntity', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/social/sentiment/${encodeURIComponent(entity)}`,
+            headers,
+          });
         }
       }
 
@@ -837,6 +1180,211 @@ export class Veroq implements INodeType {
           response = await this.helpers.httpRequest({
             method: 'GET',
             url: `${BASE_URL}/api/v1/ticker/${encodeURIComponent(tickerSymbol)}/analysis`,
+            headers,
+          });
+        }
+      }
+
+      // --- Fast Tier ---
+      if (resource === 'fast') {
+        if (operation === 'signals') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/fast/signals`,
+            headers,
+          });
+        } else if (operation === 'macro') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/fast/macro`,
+            headers,
+          });
+        } else if (operation === 'snapshot') {
+          const ticker = this.getNodeParameter('fastTicker', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/fast/snapshot/${encodeURIComponent(ticker)}`,
+            headers,
+          });
+        } else if (operation === 'movers') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/fast/movers`,
+            headers,
+          });
+        } else if (operation === 'heatmap') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/fast/heatmap`,
+            headers,
+          });
+        }
+      }
+
+      // --- Travel ---
+      if (resource === 'travel') {
+        if (operation === 'overview') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/travel/overview`,
+            headers,
+          });
+        } else if (operation === 'tsa') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/travel/tsa`,
+            headers,
+          });
+        } else if (operation === 'faa') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/travel/faa`,
+            headers,
+          });
+        }
+      }
+
+      // --- SEC EDGAR ---
+      if (resource === 'edgar') {
+        const edgarTicker = this.getNodeParameter('edgarTicker', i) as string;
+        if (operation === 'filings') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/edgar/filings/${encodeURIComponent(edgarTicker)}`,
+            headers,
+          });
+        } else if (operation === 'insider') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/edgar/insider/${encodeURIComponent(edgarTicker)}`,
+            headers,
+          });
+        } else if (operation === 'financials') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/edgar/financials/${encodeURIComponent(edgarTicker)}`,
+            headers,
+          });
+        }
+      }
+
+      // --- Energy ---
+      if (resource === 'energy') {
+        if (operation === 'overview') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/energy/overview`,
+            headers,
+          });
+        }
+      }
+
+      // --- Alt Data ---
+      if (resource === 'altData') {
+        if (operation === 'yields') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/alt/yields`,
+            headers,
+          });
+        } else if (operation === 'cot') {
+          const commodity = this.getNodeParameter('commodity', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/alt/cot/${encodeURIComponent(commodity)}`,
+            headers,
+          });
+        } else if (operation === 'attention') {
+          const entity = this.getNodeParameter('altEntity', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/alt/attention/${encodeURIComponent(entity)}`,
+            headers,
+          });
+        }
+      }
+
+      // --- Research ---
+      if (resource === 'research') {
+        if (operation === 'papers') {
+          const category = this.getNodeParameter('researchCategory', i, '') as string;
+          const qs: Record<string, any> = {};
+          if (category) qs.category = category;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/research/papers`,
+            headers,
+            qs,
+          });
+        } else if (operation === 'githubTrending') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/research/github-trending`,
+            headers,
+          });
+        } else if (operation === 'fda') {
+          const fdaType = this.getNodeParameter('fdaType', i, '') as string;
+          const qs: Record<string, any> = {};
+          if (fdaType) qs.type = fdaType;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/research/fda`,
+            headers,
+            qs,
+          });
+        } else if (operation === 'bills') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/research/bills`,
+            headers,
+          });
+        } else if (operation === 'regulations') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/research/regulations`,
+            headers,
+          });
+        }
+      }
+
+      // --- World Data ---
+      if (resource === 'worldData') {
+        if (operation === 'hackernews') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/world/hackernews`,
+            headers,
+          });
+        } else if (operation === 'jobs') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/world/jobs`,
+            headers,
+          });
+        } else if (operation === 'gdp') {
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/world/gdp`,
+            headers,
+          });
+        }
+      }
+
+      // --- Entities ---
+      if (resource === 'entities') {
+        if (operation === 'entityTrending') {
+          const limit = this.getNodeParameter('entitiesLimit', i, 10) as number;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/entities/trending`,
+            headers,
+            qs: { limit },
+          });
+        } else if (operation === 'entityBriefs') {
+          const name = this.getNodeParameter('entityName', i) as string;
+          response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: `${BASE_URL}/api/v1/entities/${encodeURIComponent(name)}/briefs`,
             headers,
           });
         }
